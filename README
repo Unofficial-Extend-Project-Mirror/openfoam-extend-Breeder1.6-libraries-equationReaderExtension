@@ -1,0 +1,56 @@
+Description
+===========
+An extension to OpenFOAM that allows you to read equations from a dictionary
+file and (optionally) have them evaluated at every time step.  It is a user-
+installed modification to OpenFOAM's core library.
+
+Original Author
+===============
+David L. F. Gaden (david_gaden@umanitoba.ca)
+
+Current Maintainer
+==================
+David L. F. Gaden (david_gaden@umanitoba.ca)
+
+Contributors
+============
+David L. F. Gaden : base version
+
+Documentation
+=============
+See: http://openfoamwiki.net/index.php/Contrib_equationReader
+
+Installation/Compilation
+========================
+
+equationReader must be installed into OpenFOAM's core library.  Since it is
+still in beta, you have to do this manually.  You only have to edit one file.  To install equationReader, refer to the instructions on the wiki, as they are most up to date.
+
+Contents
+========
+
+ - The source code for the library, which should end up in:
+        src/OpenFOAM/db/dictionary/equation
+ - A modified version of Scalar.C, which should end up in:
+        src/OpenFOAM/primitives/Scalar
+ - A demo application (equationReaderDemo) that demonstrates the basic use of
+   equationReader.  After installation, this should end up in:
+        applications/test/equationReader/equationReaderDemo
+ - A test application (equationReaderTester) that puts the equationReader
+   through a series of tests with an integrated solver.  This should end up in:
+        applications/test/equationReader/equationReaderTester
+ - Tutorial directories for both of these applications.  These should end up
+   in:
+        tutorials/equationReader/
+
+Required OpenFOAM-Version (Known to work with)
+==============================================
+1.5
+1.5-dev
+1.6
+
+History
+=======
+
+ 2010-07-21: Initial import
+
