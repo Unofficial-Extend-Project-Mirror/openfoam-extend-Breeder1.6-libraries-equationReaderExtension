@@ -54,6 +54,56 @@ inline const PtrList<word>& equationReader::dictLookups() const
 
 
 inline const
+    UPtrList<const scalarList>& equationReader::externalScalarLists() const
+{
+    return externalScalarLists_;
+}
+
+
+inline UPtrList<const scalarList>& equationReader::externalScalarLists()
+{
+    return externalScalarLists_;
+}
+
+
+inline const
+    PtrList<dimensionSet>& equationReader::externalScalarListDimensions() const
+{
+    return externalScalarListDimensions_;
+}
+
+
+inline PtrList<dimensionSet>& equationReader::externalScalarListDimensions()
+{
+    return externalScalarListDimensions_;
+}
+
+
+inline const wordList& equationReader::externalScalarListNames() const
+{
+    return externalScalarListNames_;
+}
+
+
+inline wordList& equationReader::externalScalarListNames()
+{
+    return externalScalarListNames_;
+}
+
+
+inline const labelList& equationReader::externalScalarListIndex() const
+{
+    return externalScalarListIndex_;
+}
+
+
+inline labelList& equationReader::externalScalarListIndex()
+{
+    return externalScalarListIndex_;
+}
+
+
+inline const
     UPtrList<const dimensionedScalar>& equationReader::externalDScalars() const
 {
     return externalDScalars_;
@@ -90,16 +140,58 @@ inline wordList& equationReader::externalScalarNames()
 }
 
 
+
 inline const
-    UPtrList<dimensionedScalar>& equationReader::outputDScalars() const
+    PtrList<dimensionSet>& equationReader::externalScalarDimensions() const
 {
-    return outputDScalars_;
+    return externalScalarDimensions_;
 }
 
 
-inline UPtrList<dimensionedScalar>& equationReader::outputDScalars()
+inline PtrList<dimensionSet>& equationReader::externalScalarDimensions()
 {
-    return outputDScalars_;
+    return externalScalarDimensions_;
+}
+
+
+inline const
+    UPtrList<scalar>& equationReader::outputScalars() const
+{
+    return outputScalars_;
+}
+
+
+inline UPtrList<scalar>& equationReader::outputScalars()
+{
+    return outputScalars_;
+}
+
+
+inline const
+    wordList& equationReader::outputScalarNames() const
+{
+    return outputScalarNames_;
+}
+
+
+inline
+    wordList& equationReader::outputScalarNames()
+{
+    return outputScalarNames_;
+}
+
+
+inline const
+    PtrList<dimensionSet>& equationReader::outputScalarDimensions() const
+{
+    return outputScalarDimensions_;
+}
+
+
+inline
+    PtrList<dimensionSet>& equationReader::outputScalarDimensions()
+{
+    return outputScalarDimensions_;
 }
 
 } // End namespace Foam

@@ -33,6 +33,7 @@ Description
 SourceFiles
     equationI.H
     equation.C
+    equationIO.C
 
 Author
     David L. F. Gaden
@@ -43,6 +44,7 @@ Author
 #define equation_H
 
 #include "equationOperationList.H"
+#include "dimensionedScalar.H"
 #include "scalarList.H"
 #include "dimensionSet.H"
 
@@ -76,6 +78,9 @@ class equation
         //- raw text read from the dictionary
         string rawText_;
 
+        //- Result of most recent evaluate() or update()
+        dimensionedScalar lastResult_;
+
         //- Constants appearing in the equation are stored here
 //        scalarList * internalScalars_;
         
@@ -104,8 +109,8 @@ public:
         //- Construct null
         equation();
         
-        //- Construct from Istream
-        equation(Istream& is);
+        //- Construct from Istream with optional name
+        equation(Istream& is, const word& name = word::null);
         
         //- Construct from components
         equation
@@ -133,7 +138,13 @@ public:
             inline const string& rawText() const;
             
             //- Set the equation text
-            inline string& rawtext();
+            inline string& rawText();
+
+            //- Last result
+            inline const dimensionedScalar& lastResult() const;
+            
+            //- Set the last result
+            inline dimensionedScalar& lastResult();
 
             //- Easy access to operations
             inline const equationOperationList& ops() const;

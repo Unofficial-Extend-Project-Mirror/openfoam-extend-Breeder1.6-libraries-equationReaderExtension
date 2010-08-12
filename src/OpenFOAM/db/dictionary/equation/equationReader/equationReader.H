@@ -35,7 +35,9 @@ SourceFiles
     equationReader.C
     equationReaderCreateMap.C
     equationReaderEvaluate.C
+    equationReaderIO.C
     equationReaderParse.C
+    equationReaderTemplates.C
 
 Author
     David L. F. Gaden
@@ -51,11 +53,19 @@ Author
 #include "equationList.H"
 #include "tokenList.H"
 #include "labelList.H"
+#include "DimensionedField.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
+
+// Forward declaration of friend functions and operators
+
+class equationReader;
+// *** Located in equationReaderIO.C ***
+Istream& operator>>(Istream&, equationReader&);
+Ostream& operator<<(Ostream&, const equationReader&);
 
 /*---------------------------------------------------------------------------*\
                         Class equationReader Declaration
@@ -81,6 +91,18 @@ class equationReader
             //  gives indices; this is necessary if the source is a dictionary)
             PtrList<word> dictLookups_;
             
+            //- Pointers to scalarLists, used for lists, fields, etc..
+            UPtrList<const scalarList> externalScalarLists_;
+            
+            //- Dimensions associated with the externalScalarLists
+            PtrList<dimensionSet> externalScalarListDimensions_;
+            
+            //- Names associated with the externalScalarLists
+            wordList externalScalarListNames_;
+            
+            //- Current index associated with the externalScalarLists
+            labelList externalScalarListIndex_;
+            
             //- Pointers to external dimensionedScalars
             UPtrList<const dimensionedScalar> externalDScalars_;
             
@@ -89,11 +111,20 @@ class equationReader
             
             //- Names associated with the external scalars
             wordList externalScalarNames_;
+
+            //- Dimensions associated with the external scalars
+            PtrList<dimensionSet> externalScalarDimensions_;
             
             //- The output of each equation in the equationList is sent here,
             //  indexed according to the equationList
-            UPtrList<dimensionedScalar> outputDScalars_;
+            UPtrList<scalar> outputScalars_;
             
+            //- Names associated with the output scalars
+            wordList outputScalarNames_;
+
+            //- Dimensions associated with the output scalars
+            PtrList<dimensionSet> outputScalarDimensions_;
+
             //- Temporary storage during evaluation declared a member
             //  variable as a bug fix for dropped references and pointers
             PtrList<dimensionedScalar> storage_;
@@ -249,11 +280,7 @@ class equationReader
             //  3. dictSources.
             //  Returns the source info upon finding it; does not check for
             //  duplicates.
-            equationOperation findSource
-            (
-                const word& varName,
-                const label equationIndex
-            );
+            equationOperation findSource(const word& varName);
 
             //- Return the dimensionedScalar associated with a source list and
             //  source index
@@ -291,34 +318,49 @@ public:
     equationReader();
 
     // Destructor
-    ~equationReader();
+    virtual ~equationReader();
 
     // Member functions
     
         // Adding data sources
         
             //- Add a dictionary
-            void addDataSource(const dictionary * dict);
+            void addDataSource(const dictionary& dict);
             
             //- Add an external scalar
-            void addDataSource(const scalar * value, const word name);
-            
-            //- Add an external dimensionedScalar
-            void addDataSource(const dimensionedScalar * ds);
-            
-            //- Add a list of external scalars
             void addDataSource
             (
-                const scalarList * scalars,
-                const wordList& names
+                const scalar& value,
+                const word& name,
+                const dimensionSet& dimensions = dimless
             );
             
-            //- Add a list of external dimensioned scalars
-            void addDataSource(const PtrList<dimensionedScalar> * ds);
+            //- Add an external dimensionedScalar
+            void addDataSource(const dimensionedScalar& ds);
 
+            //- Add an external scalarList
+            void addDataSource
+            (
+                const scalarList& slist,
+                const word& name,
+                const dimensionSet& dimensions = dimless
+            );
+
+            //- Add an external dimensionedScalarList
+            //  *** Located in equationReaderTemplates.C ***
+            template<class GeoMesh>
+            void addDataSource
+            (
+                const DimensionedField<scalar, GeoMesh>& dfield
+            );
+            
+            //- Change the index for a scalarList source
+            void setListIndex(const word& name, label newIndex);
+            
+            //- Change the index for all scalarList sources
+            void setListIndex(label newIndex);
 
         // Data source access
-        
         
             //- Equations (const only)
             inline const equationList& eqns() const;
@@ -331,6 +373,32 @@ public:
 
             //- Dictionary look-up words (const only)
             inline const PtrList<word>& dictLookups() const;
+
+            //- External scalarList pointers
+            inline const
+                UPtrList<const scalarList>& externalScalarLists() const;
+
+            //- Access to external scalarList pointers
+            inline UPtrList<const scalarList>& externalScalarLists();
+            
+            //- Dimensions associated with external scalarLists
+            inline const
+                PtrList<dimensionSet>& externalScalarListDimensions() const;
+
+            //- Access to dimensions associated with external scalarLists
+            inline PtrList<dimensionSet>& externalScalarListDimensions();
+            
+            //- Names associated with the external scalarLists
+            inline const wordList& externalScalarListNames() const;
+
+            //- Access to names associated with the external scalarLists
+            inline wordList& externalScalarListNames();
+            
+            //- Current index associated with the externalScalarLists
+            inline const labelList& externalScalarListIndex() const;
+
+            //- Access to current index associated with the externalScalarLists
+            inline labelList& externalScalarListIndex();
 
             //- External dimensioned scalar data source pointers
             inline const
@@ -350,13 +418,34 @@ public:
 
             //- Access external scalar names
             inline wordList& externalScalarNames();
-            
-            //- Const access to internal dimensioned scalar data pointers
+
+            //- Dimensions associated with external scalars
             inline const
-                UPtrList<dimensionedScalar>& outputDScalars() const;
+                PtrList<dimensionSet>& externalScalarDimensions() const;
+
+            //- Access to dimensions associated with external scalars
+            inline PtrList<dimensionSet>& externalScalarDimensions();
+
+            //- Const access to output scalar data pointers
+            inline const
+                UPtrList<scalar>& outputScalars() const;
             
-            //- Access internal dimensioned scalar data pointers
-            inline UPtrList<dimensionedScalar>& outputDScalars();
+            //- Access output scalar data pointers
+            inline UPtrList<scalar>& outputScalars();
+
+            //- Const access to output scalar names
+            inline const
+                wordList& outputScalarNames() const;
+            
+            //- Access output scalar names
+            inline wordList& outputScalarNames();
+
+            //- Const access to output scalar dimensions
+            inline const
+                PtrList<dimensionSet>& outputScalarDimensions() const;
+            
+            //- Access output scalar dimensions
+            inline PtrList<dimensionSet>& outputScalarDimensions();
 
 
         // Equations
@@ -365,18 +454,120 @@ public:
             //  exists, throws an error.
             void createEquation
             (
-                equation eqn,
-                dimensionedScalar * outputVar = NULL
+                equation eqn
             );
-        
+
+            //- Assign or reassign an output variable to an equation - enables
+            //  the use of update()
+            void linkOutput
+            (
+                const word& eqnName,
+                dimensionedScalar& outputDVar
+            );
+
+            //- Assign or reassign an output variable to an equation - enables
+            //  the use of update()
+            void linkOutput
+            (
+                const word& eqnName,
+                scalar& value,
+                const word& name,
+                const dimensionSet& dimensions = dimless
+            );
+
+            //- Assign or reassign an output variable to an equation - enables
+            //  the use of update()
+            void linkOutput
+            (
+                label index,
+                dimensionedScalar& outputDVar
+            );
+            
+            //- Assign or reassign an output variable to an equation - enables
+            //  the use of update()
+            void linkOutput
+            (
+                label index,
+                scalar& value,
+                const word& name,
+                const dimensionSet& dimensions = dimless
+            );
+
+            //- Read equation - if equation exists, it assumes this is a reread
+            void readEquation
+            (
+                equation eqn
+            );
+
+            //- Read equation - if equation exists, it assumes this is a reread
+            //  Also performs a linkOutput() to the given output variable
+            void readEquation
+            (
+                equation eqn,
+                dimensionedScalar& outputDVar
+            );
+
+            //- Read equation - if equation exists, it assumes this is a reread
+            //  Also performs a linkOutput() to the given output variable
+            void readEquation
+            (
+                equation eqn,
+                scalar& value,
+                const word& name,
+                const dimensionSet& dimensions = dimless
+            );
+
+            //- Read equation from a dictionary - if equation exists, it
+            //  assumes this is a reread.
+            void readEquation
+            (
+                const dictionary& sourceDict,
+                const word& eqnName
+            );
+
+            //- Read equation from a dictionary - if equation exists, it
+            //  assumes this is a reread.
+            //  Also performs a linkOutput() to the given output variable
+            void readEquation
+            (
+                const dictionary& sourceDict,
+                const word& eqnName,
+                dimensionedScalar& outputDVar
+            );
+
+            //- Read equation from a dictionary - if equation exists, it
+            //  assumes this is a reread.
+            //  Also performs a linkOutput() to the given output variable
+            void readEquation
+            (
+                const dictionary& sourceDict,
+                const word& eqnName,
+                scalar& value,
+                const word& name,
+                const dimensionSet& dimensions = dimless
+            );
+
+/*
             //- Create, read and parse an equation, if a duplicate is found, it
             //  assumes this is a reread.  Given components.  If outputVar is 
             //  omitted, you cannot use 'update' for this equation.
             void readEquation
             (
-                const dictionary * sourceDict,
+                const dictionary& sourceDict,
                 const word& eqnName,
-                dimensionedScalar * outputVar = NULL
+                dimensionedScalar * outputDVar = NULL
+            );
+
+            //- Create, read and parse an equation, if a duplicate is found, it
+            //  assumes this is a reread.  Given components.  If outputVar is 
+            //  omitted, you cannot use 'update' for this equation.
+            void readEquation
+            (
+                const dictionary& sourceDict,
+                const word& eqnName,
+                scalar * outputVar,
+                const word& outputName,
+                const dimensionSet& outputDimensions
             );
 
             //- Read, parse and evaluate an equation, if a duplicate is found,
@@ -384,8 +575,19 @@ public:
             void readEquation
             (
                 equation eqn,
-                dimensionedScalar * outputVar = NULL
+                dimensionedScalar * outputDVar = NULL
             );
+
+            //- Read, parse and evaluate an equation, if a duplicate is found,
+            //  it assumes this is a reread.  Given equation.
+            void readEquation
+            (
+                equation eqn,
+                scalar * outputVar,
+                const word& outputName,
+                const dimensionSet& outputDimensions
+            );
+*/
 
             //- Evaluate a single equation, given a variable name, and return
             //  new value.  Do not set the associated output variable
@@ -426,8 +628,15 @@ public:
             //- Delete an equation, given an index number
             void deleteEquation(const label& index);
       
-        // Post a status report of this equationReader object to the console
-        void status();
+        // Input / output related functions
+        // *** Located in equationReaderIO.C ***
+
+            //- Output data source information to the Ostream
+            Ostream& dataSourceStatus(Ostream& os) const;
+
+            friend Istream& operator>>(Istream&, equationReader&);
+            friend Ostream& operator<<(Ostream&, const equationReader&);
+
 };
 
 
@@ -438,5 +647,5 @@ public:
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 #include "equationReaderI.H"
-
+#include "equationReaderTemplates.C"
 #endif

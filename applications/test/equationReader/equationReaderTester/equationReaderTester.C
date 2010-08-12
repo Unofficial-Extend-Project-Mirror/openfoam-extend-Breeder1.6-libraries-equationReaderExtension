@@ -37,7 +37,7 @@ Author
 
 #include "argList.H"
 #include "IFstream.H"
-#include "equationReader.H"
+#include "IOEquationReader.H"
 #include "fvCFD.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -58,70 +58,81 @@ int main(int argc, char *argv[])
 
     // Create the equationReader object
     Info << "Creating the equationReader object" << token::NL << endl;
-    equationReader eqns;
+    IOEquationReader eqns
+    (
+        IOobject
+        (
+            "eqns",
+            runTime.timeName(),
+            runTime,
+            IOobject::READ_IF_PRESENT,
+            IOobject::AUTO_WRITE
+        ),
+        true
+    );
 
     // Create dictionaries
-    Info << "Reading testDict dictionary" << token::NL << endl;
+    Info << "Reading testDict dictionaries" << token::NL << endl;
     IFstream tfIF1(path/"testDict1");
-    const dictionary * testDict1 = new dictionary(tfIF1);
+    const dictionary testDict1(tfIF1);
     IFstream tfIF2(path/"testDict2");
-    const dictionary * testDict2 = new dictionary(tfIF2);
+    const dictionary testDict2(tfIF2);
     IFstream tfIF3(path/"testDict3");
-    const dictionary * testDict3 = new dictionary(tfIF3);
+    const dictionary testDict3(tfIF3);
     IFstream tfIF4(path/"testDict4");
-    const dictionary * testDict4 = new dictionary(tfIF4);
+    const dictionary testDict4(tfIF4);
     IFstream tfIF5(path/"testDict5");
-    const dictionary * testDict5 = new dictionary(tfIF5);
+    const dictionary testDict5(tfIF5);
     IFstream tfIF6(path/"testDict6");
-    const dictionary * testDict6 = new dictionary(tfIF6);
+    const dictionary testDict6(tfIF6);
     IFstream tfIF7(path/"testDict7");
-    const dictionary * testDict7 = new dictionary(tfIF7);
+    const dictionary testDict7(tfIF7);
     IFstream tfIF8(path/"testDict8");
-    const dictionary * testDict8 = new dictionary(tfIF8);
+    const dictionary testDict8(tfIF8);
     IFstream tfIF9(path/"testDict9");
-    const dictionary * testDict9 = new dictionary(tfIF9);
+    const dictionary testDict9(tfIF9);
     IFstream tfIF10(path/"testDict10");
-    const dictionary * testDict10 = new dictionary(tfIF10);
-    scalar * Sa = new scalar(0.1);
-    scalar * Sb = new scalar(0.2);
-    scalar * Sc = new scalar(0.3);
-    scalar * Sd = new scalar(0.4);
-    scalar * Se = new scalar(0.5);
-    scalar * Sf = new scalar(0.6);
-    scalar * Sg = new scalar(0.7);
-    scalar * Sh = new scalar(0.8);
-    scalar * Si = new scalar(0.9);
-    scalar * Sj = new scalar(0.10);
-    scalar * Sk = new scalar(0.11);
-    scalar * Sl = new scalar(0.12);
-    dimensionedScalar * DSa = new dimensionedScalar("DSa", dimless, 1);
-    dimensionedScalar * DSb = new dimensionedScalar("DSb", dimless, 2);
-    dimensionedScalar * DSc = new dimensionedScalar("DSc", dimless, 3);
-    dimensionedScalar * DSd = new dimensionedScalar("DSd", dimless, 4);
-    dimensionedScalar * DSe = new dimensionedScalar("DSe", dimless, 5);
-    dimensionedScalar * DSf = new dimensionedScalar("DSf", dimless, 6);
-    dimensionedScalar * DSg = new dimensionedScalar("DSg", dimless, 7);
-    dimensionedScalar * DSh = new dimensionedScalar("DSh", dimless, 8);
-    dimensionedScalar * DSi = new dimensionedScalar("DSi", dimless, 9);
-    dimensionedScalar * DSj = new dimensionedScalar("DSj", dimless, 10);
-    dimensionedScalar * DSk = new dimensionedScalar("DSk", dimless, 11);
-    dimensionedScalar * DSl = new dimensionedScalar("DSl", dimless, 12);
-    dimensionedScalar * DSm = new dimensionedScalar("DSm", dimless, 13);
-    dimensionedScalar * DSn = new dimensionedScalar("DSn", dimless, 14);
-    dimensionedScalar * DSo = new dimensionedScalar("DSo", dimless, 15);
-    dimensionedScalar * DStime = new dimensionedScalar("DStime", dimless, 0);
-    dimensionedScalar * Aa = new dimensionedScalar("Aa", dimless, 0);
-    dimensionedScalar * Ab = new dimensionedScalar("Ab", dimless, 0);
-    dimensionedScalar * Ac = new dimensionedScalar("Ac", dimless, 0);
-    dimensionedScalar * Ad = new dimensionedScalar("Ad", dimless, 0);
-    dimensionedScalar * Ae = new dimensionedScalar("Ae", dimless, 0);
-    dimensionedScalar * Af = new dimensionedScalar("Af", dimless, 0);
-    dimensionedScalar * Pa = new dimensionedScalar("Pa", dimless, 0);
-    dimensionedScalar * Pb = new dimensionedScalar("Pb", dimless, 0);
-    dimensionedScalar * Pc = new dimensionedScalar("Pc", dimless, 0);
-    dimensionedScalar * Pd = new dimensionedScalar("Pd", dimless, 0);
-    dimensionedScalar * Pe = new dimensionedScalar("Pe", dimless, 0);
-    dimensionedScalar * Pf = new dimensionedScalar("Pf", dimless, 0);
+    const dictionary testDict10(tfIF10);
+    scalar Sa(0.1);
+    scalar Sb(0.2);
+    scalar Sc(0.3);
+    scalar Sd(0.4);
+    scalar Se(0.5);
+    scalar Sf(0.6);
+    scalar Sg(0.7);
+    scalar Sh(0.8);
+    scalar Si(0.9);
+    scalar Sj(0.10);
+    scalar Sk(0.11);
+    scalar Sl(0.12);
+    dimensionedScalar DSa("DSa", dimless, 1);
+    dimensionedScalar DSb("DSb", dimless, 2);
+    dimensionedScalar DSc("DSc", dimless, 3);
+    dimensionedScalar DSd("DSd", dimless, 4);
+    dimensionedScalar DSe("DSe", dimless, 5);
+    dimensionedScalar DSf("DSf", dimless, 6);
+    dimensionedScalar DSg("DSg", dimless, 7);
+    dimensionedScalar DSh("DSh", dimless, 8);
+    dimensionedScalar DSi("DSi", dimless, 9);
+    dimensionedScalar DSj("DSj", dimless, 10);
+    dimensionedScalar DSk("DSk", dimless, 11);
+    dimensionedScalar DSl("DSl", dimless, 12);
+    dimensionedScalar DSm("DSm", dimless, 13);
+    dimensionedScalar DSn("DSn", dimless, 14);
+    dimensionedScalar DSo("DSo", dimless, 15);
+    dimensionedScalar DStime("DStime", dimless, 0);
+    dimensionedScalar Aa("Aa", dimless, 0);
+    dimensionedScalar Ab("Ab", dimless, 0);
+    dimensionedScalar Ac("Ac", dimless, 0);
+    dimensionedScalar Ad("Ad", dimless, 0);
+    dimensionedScalar Ae("Ae", dimless, 0);
+    dimensionedScalar Af("Af", dimless, 0);
+    dimensionedScalar Pa("Pa", dimless, 0);
+    dimensionedScalar Pb("Pb", dimless, 0);
+    dimensionedScalar Pc("Pc", dimless, 0);
+    dimensionedScalar Pd("Pd", dimless, 0);
+    dimensionedScalar Pe("Pe", dimless, 0);
+    dimensionedScalar Pf("Pf", dimless, 0);
 
     eqns.addDataSource(testDict1);
     eqns.addDataSource(testDict2);
@@ -163,6 +174,11 @@ int main(int argc, char *argv[])
     eqns.addDataSource(Sj, "Sj");
     eqns.addDataSource(Sk, "Sk");
     eqns.addDataSource(Sl, "Sl");
+    
+    label listIndex(0);
+    eqns.addDataSource(p);
+    eqns.addDataSource(dummy);
+    eqns.setListIndex(listIndex);
 
     eqns.readEquation(testDict1, "Pa");
     eqns.readEquation(testDict1, "Pb");
@@ -179,19 +195,19 @@ int main(int argc, char *argv[])
     eqns.readEquation(testDict1, "Af", Af);
     eqns.readEquation(testDict1, "nu", nu);
 
-    scalar saA(readScalar(testDict1->lookup("saA")));
-    scalar saB(readScalar(testDict1->lookup("saB")));
-    scalar saC(readScalar(testDict1->lookup("saC")));
-    scalar saD(readScalar(testDict1->lookup("saD")));
-    scalar saE(readScalar(testDict1->lookup("saE")));
-    scalar saF(readScalar(testDict1->lookup("saF")));
+    scalar saA(readScalar(testDict1.lookup("saA")));
+    scalar saB(readScalar(testDict1.lookup("saB")));
+    scalar saC(readScalar(testDict1.lookup("saC")));
+    scalar saD(readScalar(testDict1.lookup("saD")));
+    scalar saE(readScalar(testDict1.lookup("saE")));
+    scalar saF(readScalar(testDict1.lookup("saF")));
     
-    dimensionedScalar dsaA(testDict1->lookup("dsaA"));
-    dimensionedScalar dsaB(testDict1->lookup("dsaB"));
-    dimensionedScalar dsaC(testDict1->lookup("dsaC"));
-    dimensionedScalar dsaD(testDict1->lookup("dsaD"));
-    dimensionedScalar dsaE(testDict1->lookup("dsaE"));
-    dimensionedScalar dsaF(testDict1->lookup("dsaF"));
+    dimensionedScalar dsaA(testDict1.lookup("dsaA"));
+    dimensionedScalar dsaB(testDict1.lookup("dsaB"));
+    dimensionedScalar dsaC(testDict1.lookup("dsaC"));
+    dimensionedScalar dsaD(testDict1.lookup("dsaD"));
+    dimensionedScalar dsaE(testDict1.lookup("dsaE"));
+    dimensionedScalar dsaF(testDict1.lookup("dsaF"));
 
     Info << "Stand-alone test:" << endl;
     Info << "saA = " << saA << endl;
@@ -227,7 +243,16 @@ int main(int argc, char *argv[])
     for (runTime++; !runTime.end(); runTime++)
     {
         Info<< "Time = " << runTime.timeName() << nl << endl;
-        DStime->value() = runTime.value();
+        DStime.value() = runTime.value();
+        
+        Info << "Moving p index to ";
+        listIndex++;
+        if (listIndex == p.size())
+        {
+            listIndex = 0;
+        }
+        Info << listIndex << "..." << endl;
+        eqns.setListIndex(listIndex);
 
         Info << "Passive reread..." << endl;
         eqns.readEquation(testDict1, "Pa");
@@ -241,33 +266,33 @@ int main(int argc, char *argv[])
 
         Info << "Updating active equations..." << endl;
         eqns.update();
-        Info << "Aa = " << *Aa << endl;
-        Info << "Ab = " << *Ab << endl;
-        Info << "Ac = " << *Ac << endl;
-        Info << "Ad = " << *Ad << endl;
-        Info << "Ae = " << *Ae << endl;
-        Info << "Af = " << *Af << endl;
-        Info << "nu = " << *nu << endl;
+        Info << "Aa = " << Aa << endl;
+        Info << "Ab = " << Ab << endl;
+        Info << "Ac = " << Ac << endl;
+        Info << "Ad = " << Ad << endl;
+        Info << "Ae = " << Ae << endl;
+        Info << "Af = " << Af << endl;
+        Info << "nu = " << nu << endl;
 
         Info << "Evaluating passive equations: Pa, ";
-        *Pa = eqns.evaluate("Pa");
+        Pa = eqns.evaluate("Pa");
         Info << "Pb, ";
-        *Pb = eqns.evaluate("Pb");
+        Pb = eqns.evaluate("Pb");
         Info << "Pc, ";
-        *Pc = eqns.evaluate("Pc");
+        Pc = eqns.evaluate("Pc");
         Info << "Pd, ";
-        *Pe = eqns.evaluate("Pd");
+        Pe = eqns.evaluate("Pd");
         Info << "Pe, ";
-        *Pd = eqns.evaluate("Pe");
+        Pd = eqns.evaluate("Pe");
         Info << "Pf." << endl;
-        *Pf = eqns.evaluate("Pf");
+        Pf = eqns.evaluate("Pf");
 
-        Info << "Pa = " << *Pa << endl;
-        Info << "Pb = " << *Pb << endl;
-        Info << "Pc = " << *Pc << endl;
-        Info << "Pd = " << *Pd << endl;
-        Info << "Pe = " << *Pe << endl;
-        Info << "Pf = " << *Pf << endl;
+        Info << "Pa = " << Pa << endl;
+        Info << "Pb = " << Pb << endl;
+        Info << "Pc = " << Pc << endl;
+        Info << "Pd = " << Pd << endl;
+        Info << "Pe = " << Pe << endl;
+        Info << "Pf = " << Pf << endl;
 
 #       include "readPISOControls.H"
 #       include "CourantNo.H"
@@ -276,7 +301,7 @@ int main(int argc, char *argv[])
         (
             fvm::ddt(U)
           + fvm::div(phi, U)
-          - fvm::laplacian(*nu, U)
+          - fvm::laplacian(nu, U)
         );
 
         solve(UEqn == -fvc::grad(p));

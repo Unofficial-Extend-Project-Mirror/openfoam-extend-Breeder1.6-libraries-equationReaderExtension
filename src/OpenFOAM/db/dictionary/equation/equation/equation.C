@@ -37,6 +37,7 @@ Foam::equation::equation()
 :
     equationName_(word::null),
     rawText_(""),
+    lastResult_(word::null, dimless, 0),
     overrideDimensions_(dimless),
     changeDimensions_(false)
 {
@@ -45,10 +46,11 @@ Foam::equation::equation()
 }
 
 
-Foam::equation::equation(Istream& is)
+Foam::equation::equation(Istream& is, const word& name)
 :
-    equationName_(word::null),
+    equationName_(name),
     rawText_(""),
+    lastResult_(word::null, dimless, 0),
     overrideDimensions_(dimless),
     changeDimensions_(false)
 {
@@ -67,6 +69,7 @@ Foam::equation::equation
 :
     equationName_(equationName),
     rawText_(rawText),
+    lastResult_(equationName, dimless, 0),
     overrideDimensions_(overrideDimensions),
     changeDimensions_(changeDimensions)
 {
@@ -90,44 +93,6 @@ void Foam::equation::operator=(Foam::equation& eqn)
     changeDimensions_ = eqn.changeDimensions_;
 }
 
-// * * * * * * * * * * * * * Friend IOstream Operators * * * * * * * * * * * //
-
-Foam::Istream& Foam::operator>>(Istream& is, equation& I)
-{
-    // Acceptable istream formats:
-    //      string;
-    //      [dimensionSet] string;
-    //      name [dimensionSet] string;
-
-    I.equationName_ = "fromIstream";
-
-    token t(is);
-    if (t.isString())
-    {
-        I.rawText_ = t.stringToken();
-    }
-    else if (t.isPunctuation())
-    {
-        is.putBack(t);
-        I.changeDimensions_ = true;
-        I.overrideDimensions_.reset(dimensionSet(is));
-        I.rawText_ = string(is);
-    }
-    else if (t.isWord())
-    {
-        word garbage(t.wordToken());
-        I.changeDimensions_ = true;
-        I.overrideDimensions_.reset(dimensionSet(is));
-        I.rawText_ = string(is);
-    }
-    return is;
-}
-
-
-Foam::Ostream& Foam::operator<<(Ostream& os, const equation& I)
-{
-    return os   << I.equationName_ << token::TAB << I.rawText_;
-}
 
 
 // ************************************************************************* //

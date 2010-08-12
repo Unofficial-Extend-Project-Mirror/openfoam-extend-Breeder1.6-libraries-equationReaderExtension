@@ -54,3 +54,8 @@ History
 
  2010-07-21: Initial import
  2010-08-05: Differentiated versions for OpenFOAM 1.5.x/1.5-dev and OpenFOAM 1.6+
+ 2010-08-12:
+    * Added IOobject support for automatic output - IOEquationReader
+    * Removed need for pointers
+    * Added support for scalarLists as a data source
+    * Cleaned up available functions

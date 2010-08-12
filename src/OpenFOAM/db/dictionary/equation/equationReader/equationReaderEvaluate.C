@@ -29,7 +29,7 @@ License
 
 Foam::dimensionedScalar Foam::equationReader::evaluate
 (
-    const Foam::word& equationName
+    const word& equationName
 )
 {
     label index(lookup(equationName));
@@ -45,8 +45,8 @@ Foam::dimensionedScalar Foam::equationReader::evaluate
 
 Foam::dimensionedScalar Foam::equationReader::evaluate
 (
-    const Foam::label& index,
-    Foam::label storageOffset
+    const label& index,
+    label storageOffset
 )
 {
     if (debug)
@@ -831,6 +831,7 @@ Foam::dimensionedScalar Foam::equationReader::evaluate
     {
         Info << "Equation evaluated.  Result is: " << ds << endl;
     }
+    dsEqual(eqns_[index].lastResult(), ds);
     return ds;
 }
 

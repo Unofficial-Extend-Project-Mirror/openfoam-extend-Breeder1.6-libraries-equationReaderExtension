@@ -390,6 +390,8 @@ Foam::word Foam::equationOperation::sourceName
             return "dimensionedScalar";
         case slexternalScalar:
             return "scalar";
+        case slexternalScalarList:
+            return "scalarList";
         case slinternalScalar:
             return "constant";
         case slequation:

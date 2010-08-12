@@ -1,0 +1,61 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  1.5-dev                               |
+|   \\  /    A nd           | Web:      http://www.OpenFOAM.org               |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       equationReader;
+    object      eqns;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+// * * * * * * * * * * * * * Equation information  * * * * * * * * * * * * * //
+equations
+{
+    equationName
+    {
+        equationName [0 0 0 0 0 0 0] "1 + b/2";
+        outputVarName   C;
+    }
+}
+// * * * * * * * * * * * * Data source information * * * * * * * * * * * * * //
+dataSources
+{
+    dictSources
+    4
+    (
+    /home/dave/OpenFOAM/dave-1.5-dev/run/tutorial/equationReaderDemo/testDict1,
+    /home/dave/OpenFOAM/dave-1.5-dev/run/tutorial/equationReaderDemo/testDict1,
+    /home/dave/OpenFOAM/dave-1.5-dev/run/tutorial/equationReaderDemo/testDict1,
+    /home/dave/OpenFOAM/dave-1.5-dev/run/tutorial/equationReaderDemo/testDict1
+    );
+    dictLookups 3( happy go lucky );
+    externalDimensionedScalars
+    2
+    (
+    dsA dsA [0 0 0 0 0 0 0] 0.04
+    dsB dsB [0 0 0 0 0 0 0] 12.7
+    );
+    externalScalars 5(0.5 12.8 30 0.001 0.2);
+    externalScalarNames
+    5
+    (
+    sA
+    sB
+    sC
+    sD
+    sE
+    );
+    outputScalars
+    2
+    (
+    outA    outA [0 0 0 0 0 0 0] 0.07
+    outB    outB [0 0 0 0 0 0 0] 0.07
+    );
+    internalScalars 5(1 2 3 4 5);
+}

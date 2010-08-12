@@ -29,11 +29,11 @@ License
 
 void Foam::equationReader::createMap
 (
-    const Foam::label index,
-    const Foam::tokenList& tl,
-    Foam::equationOperationList& map,
-    Foam::labelList& opLvl,
-    Foam::labelList& pl
+    const label index,
+    const tokenList& tl,
+    equationOperationList& map,
+    labelList& opLvl,
+    labelList& pl
 )
 {
 //    equation * eqn(&this->operator[](index));
@@ -151,7 +151,7 @@ void Foam::equationReader::createMap
 
                 if
                 (
-                    findSource(tl[i].wordToken(), index).sourceList()
+                    findSource(tl[i].wordToken()).sourceList()
                  != equationOperation::slnone
                 )
                 {
@@ -319,7 +319,7 @@ void Foam::equationReader::createMap
                 // Variable name
                 opLvl[i] = 0;
                 pl[i] = p;
-                map[i] = findSource(tl[i].wordToken(), index);
+                map[i] = findSource(tl[i].wordToken());
                 if (map[i].sourceIndex() == 0)
                 {
                     OStringStream description;

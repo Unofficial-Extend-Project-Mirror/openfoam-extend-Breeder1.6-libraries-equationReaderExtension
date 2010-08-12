@@ -40,10 +40,10 @@ namespace Foam
 
 void Foam::equationReader::fatalParseError
 (
-    const Foam::label index,
-    const Foam::tokenList& tl,
-    const Foam::label fromToken,
-    const Foam::label toToken,
+    const label index,
+    const tokenList& tl,
+    const label fromToken,
+    const label toToken,
     const string& errorIn,
     const OStringStream& description
 )
@@ -108,9 +108,9 @@ Foam::string Foam::equationReader::stringPreconditioner(const string& rawText)
 
 void Foam::equationReader::stringReplaceAll
 (
-    Foam::string& working,
-    const Foam::string& findMe,
-    const Foam::string& replaceWith
+    string& working,
+    const string& findMe,
+    const string& replaceWith
 )
 {
     size_t position(0);
@@ -134,8 +134,8 @@ void Foam::equationReader::stringReplaceAll
 
 Foam::labelList Foam::equationReader::findMaxParenthesis
 (
-    const Foam::labelList& parenthesisList,
-    const Foam::labelList& equationIndices
+    const labelList& parenthesisList,
+    const labelList& equationIndices
 ) const
 {
     labelList returnMe(equationIndices.size());
@@ -173,8 +173,8 @@ Foam::labelList Foam::equationReader::findMaxParenthesis
 
 Foam::labelList Foam::equationReader::findMaxOperation
 (
-    const Foam::labelList& opLvl,
-    const Foam::labelList& indices
+    const labelList& opLvl,
+    const labelList& indices
 )
 {
     label maxOpLvl(-1);
@@ -221,12 +221,12 @@ Foam::labelList Foam::equationReader::findMaxOperation
 
 void Foam::equationReader::absorbNegatives
 (
-    const Foam::label equationIndex,
-    const Foam::tokenList& tl,
-    Foam::labelList& eqnIndices,
-    Foam::labelList& subEqnIndices,
-    Foam::equationOperationList& map,
-    Foam::labelList& opLvl
+    const label equationIndex,
+    const tokenList& tl,
+    labelList& eqnIndices,
+    labelList& subEqnIndices,
+    equationOperationList& map,
+    labelList& opLvl
 )
 {
     // Negatives are identified by a map with a negative sourceIndex
@@ -264,8 +264,8 @@ void Foam::equationReader::absorbNegatives
 
 void Foam::equationReader::dsEqual
 (
-    Foam::dimensionedScalar& dso,
-    const Foam::dimensionedScalar& dsi
+    dimensionedScalar& dso,
+    const dimensionedScalar& dsi
 )
 {
     dso.value() = dsi.value();
@@ -276,11 +276,11 @@ void Foam::equationReader::dsEqual
 
 void Foam::equationReader::trimListWithParent
 (
-    Foam::labelList& parent,
-    Foam::labelList& indices,
-    Foam::label from,
-    Foam::label to,
-    Foam::label exceptFor
+    labelList& parent,
+    labelList& indices,
+    label from,
+    label to,
+    label exceptFor
 )
 {
     if
@@ -321,10 +321,10 @@ void Foam::equationReader::trimListWithParent
 
 void Foam::equationReader::trimList
 (
-    Foam::labelList& indices,
-    Foam::label from,
-    Foam::label to,
-    Foam::label exceptFor
+    labelList& indices,
+    label from,
+    label to,
+    label exceptFor
 )
 {
     if
@@ -373,8 +373,8 @@ void Foam::equationReader::trimList
 
 Foam::label Foam::equationReader::findIndex
 (
-    const Foam::label value,
-    const Foam::labelList& indexList
+    const label value,
+    const labelList& indexList
 ) const
 {
     forAll (indexList, i)
@@ -390,14 +390,14 @@ Foam::label Foam::equationReader::findIndex
 
 Foam::equationOperation Foam::equationReader::findSource
 (
-    const Foam::word& varName,
-    const Foam::label equationIndex
+    const word& varName
 )
 {
     // Search order:
     // -other equations
     // -externalDScalars
     // -externalScalars
+    // -externalScalarLists
     // -dictSources
     equationOperation returnMe
     (
@@ -458,6 +458,20 @@ Foam::equationOperation Foam::equationReader::findSource
             );
         }
     }
+    
+    forAll(externalScalarListNames_, i)
+    {
+        if (externalScalarListNames_[i] == varName)
+        {
+            returnMe = equationOperation
+            (
+                equationOperation::slexternalScalarList,
+                i + 1,
+                0,
+                equationOperation::otnone
+            );
+        }
+    }
 
     forAll(dictSources_, i)
     {
@@ -468,7 +482,7 @@ Foam::equationOperation Foam::equationReader::findSource
 
             ITstream srcStrm
             (
-                dictSources_[i].lookup(varName, true)
+                dictSources_[i].lookup(varName)
             );
             if (isDimensionedScalar(srcStrm) || isScalar(srcStrm))
             {
@@ -556,10 +570,10 @@ Foam::equationOperation Foam::equationReader::findSource
 
 Foam::dimensionedScalar Foam::equationReader::getSource
 (
-    const Foam::label equationIndex,
-    const Foam::label equationOperationIndex,
-    const Foam::label maxStoreIndex,
-    const Foam::label storageOffset
+    const label equationIndex,
+    const label equationOperationIndex,
+    const label maxStoreIndex,
+    const label storageOffset
 )
 {
     dimensionedScalar returnMe("noSource", dimless, 0);
@@ -587,7 +601,7 @@ Foam::dimensionedScalar Foam::equationReader::getSource
             
             ITstream srcStrm
             (
-                dictSources_[zeroSourceIndex].lookup(varName, true)
+                dictSources_[zeroSourceIndex].lookup(varName)
             );
             if (isDimensionedScalar(srcStrm))
             {
@@ -633,6 +647,27 @@ Foam::dimensionedScalar Foam::equationReader::getSource
             }
             returnMe.name() = externalScalarNames_[zeroSourceIndex];
             returnMe.value() = externalScalars_[zeroSourceIndex];
+            break;
+        case equationOperation::slexternalScalarList:
+            if (zeroSourceIndex >= externalScalarLists_.size())
+            {
+                FatalErrorIn("equationReader::getSouce")
+                    << "Index " << zeroSourceIndex << " out of bounds (0, "
+                    << externalScalarLists_.size() - 1 << ")"
+                    << abort(FatalError);
+            }
+            dsEqual
+            (
+                returnMe,
+                dimensionedScalar
+                (
+                    externalScalarListNames_[zeroSourceIndex],
+                    externalScalarListDimensions_[zeroSourceIndex],
+                    externalScalarLists_
+                        [zeroSourceIndex]
+                        [externalScalarListIndex_[zeroSourceIndex]]
+                )
+            );
             break;
         case equationOperation::slinternalScalar:
             if (zeroSourceIndex >= internalScalars_.size())
@@ -711,7 +746,7 @@ Foam::dimensionedScalar Foam::equationReader::getSource
 }
 
 
-Foam::label Foam::equationReader::addInternalScalar(const Foam::scalar& value)
+Foam::label Foam::equationReader::addInternalScalar(const scalar& value)
 {
     forAll(internalScalars_, i)
     {
@@ -726,7 +761,7 @@ Foam::label Foam::equationReader::addInternalScalar(const Foam::scalar& value)
 }
 
 
-bool Foam::equationReader::isDimensionedScalar(Foam::ITstream& is)
+bool Foam::equationReader::isDimensionedScalar(ITstream& is)
 {
     tokenList tl(12);
     label found(0);
@@ -899,72 +934,357 @@ Foam::equationReader::~equationReader()
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-void Foam::equationReader::addDataSource(const Foam::dictionary * dict)
+void Foam::equationReader::addDataSource(const dictionary& dict)
 {
     dictSources_.setSize(dictSources_.size() + 1);
-    dictSources_.set(dictSources_.size() - 1, dict);
+    dictSources_.set(dictSources_.size() - 1, &dict);
 }
 
 
 void Foam::equationReader::addDataSource
 (
-    const Foam::scalar * value,
-    const Foam::word name
+    const scalar& value,
+    const word& name,
+    const dimensionSet& dimensions
 )
 {
-    externalScalars_.setSize(externalScalars_.size() + 1);
-    externalScalars_.set(externalScalars_.size() - 1, value);
-
-    externalScalarNames_.setSize(externalScalarNames_.size() + 1);
-    externalScalarNames_[externalScalarNames_.size() - 1] = name;
-}
-
-
-void Foam::equationReader::addDataSource(const Foam::dimensionedScalar * ds)
-{
-    externalDScalars_.setSize(externalDScalars_.size() + 1);
-    externalDScalars_.set(externalDScalars_.size() - 1, ds);
-}
-
-
-void Foam::equationReader::addDataSource
-(
-    const Foam::scalarList * scalars,
-    const Foam::wordList& names
-)
-{
-    if (scalars->size() != names.size())
+    equationOperation source(findSource(name));
+    if
+    (
+        source.sourceList() != equationOperation::slnone
+     && source.sourceList() != equationOperation::sldictSource
+    )
     {
-        FatalErrorIn("equationReader::addDataSource(const scalarList "
-               "scalars, const wordList names)")
-            << "Size mismatch.  scalars.size = " << scalars->size()
-            << ", names.size() = " << names.size()
+        FatalErrorIn("equationReader::addDataSource")
+            << "Attempting to add external scalar named " << name << " when "
+            << "this name already exists as a "
+            << equationOperation::sourceName(source.sourceList()) << " source."
+            << abort(FatalError);
+    }
+    
+    label newSize(externalScalars_.size() + 1);
+    
+    externalScalars_.setSize(newSize);
+    externalScalarNames_.setSize(newSize);
+    externalScalarDimensions_.setSize(newSize);
+    
+    externalScalars_.set(newSize - 1, &value);
+    externalScalarNames_[newSize - 1] = name;
+    externalScalarDimensions_.set(newSize - 1, new dimensionSet(dimensions));
+}
+
+
+void Foam::equationReader::addDataSource(const dimensionedScalar& ds)
+{
+    addDataSource(ds.value(), ds.name(), ds.dimensions());
+}
+
+
+void Foam::equationReader::addDataSource
+(
+    const scalarList& slist,
+    const word& name,
+    const dimensionSet& dimensions
+)
+{
+    equationOperation source(findSource(name));
+    if
+    (
+        source.sourceList() != equationOperation::slnone
+     && source.sourceList() != equationOperation::sldictSource
+    )
+    {
+        FatalErrorIn("equationReader::addDataSource")
+            << "Attempting to add external scalarList named " << name
+            << " when this name already exists as a "
+            << equationOperation::sourceName(source.sourceList()) << " source."
             << abort(FatalError);
     }
 
-    for (label i(0); i < scalars->size(); i++)
-    {
-        addDataSource(&scalars->operator[](i), names[i]);
-    }
+    label newSize(externalScalarLists_.size() + 1);
+    
+    externalScalarLists_.setSize(newSize);
+    externalScalarListNames_.setSize(newSize);
+    externalScalarListDimensions_.setSize(newSize);
+    externalScalarListIndex_.setSize(newSize);
+
+    externalScalarLists_.set(newSize - 1, &slist);
+    externalScalarListNames_[newSize - 1] = name;
+    externalScalarListDimensions_.set
+    (
+        newSize - 1,
+        new dimensionSet(dimensions)
+    );
+    externalScalarListIndex_[newSize - 1] = 0;    
 }
 
 
-void Foam::equationReader::addDataSource
-(
-    const Foam::PtrList<dimensionedScalar> * ds
-)
+void Foam::equationReader::setListIndex(const word& name, label newIndex)
 {
-    for (label i(0); i < ds->size(); i++)
+    equationOperation source(findSource(name));
+    if (source.sourceList() != equationOperation::slexternalScalarList)
     {
-        addDataSource(&ds->operator[](i));
+        FatalErrorIn("equationReader::setListIndex")
+            << "setListIndex called for variable " << name << " which is not "
+            << "a scalarList source.  Its source is: "
+            << equationOperation::sourceName(source.sourceList())
+            << abort(FatalError);
+    }
+    label maxIndex(externalScalarLists_[source.sourceIndex() - 1].size());
+    if (newIndex < 0 || newIndex > maxIndex)
+    {
+        FatalErrorIn("equationReader::setListIndex")
+            << "Index " << newIndex << " is out of bounds (0, " << maxIndex - 1
+            << ") for scalarList " << name << "."
+            << abort(FatalError);
+    }
+    externalScalarListIndex_[source.sourceIndex() - 1] = newIndex;
+}
+
+
+void Foam::equationReader::setListIndex(label newIndex)
+{
+    forAll(externalScalarListNames_, i)
+    {
+        setListIndex(externalScalarListNames_[i], newIndex);
     }
 }
 
 
 void Foam::equationReader::createEquation
 (
-    Foam::equation eqn,
-    Foam::dimensionedScalar * outputVar
+    equation eqn
+)
+{
+    label index(lookup(eqn.equationName()));
+    if (index < 0)
+    {
+        if (debug)
+        {
+            Info << "Creating equation " << eqn.equationName() << " at index "
+                << eqns_.size() << endl;
+        }
+        label newSize(eqns_.size() + 1);
+        
+        eqns_.setSize(newSize);
+        outputScalars_.setSize(newSize);
+        outputScalarNames_.setSize(newSize);
+        outputScalarDimensions_.setSize(newSize);
+
+        eqns_.set(newSize - 1, new equation(eqn));
+        outputScalars_.set(newSize - 1, NULL);
+        outputScalarNames_[newSize - 1] = word::null;
+        outputScalarDimensions_.set
+        (
+            newSize - 1,
+            new dimensionSet(dimless)
+        );
+    }
+    else
+    {
+        FatalErrorIn("equationReader::createEquation")
+            << "Equation " << eqn.equationName() << " already exists."
+            << abort(FatalError);
+    }
+}
+
+
+void Foam::equationReader::linkOutput
+(
+    const word& eqnName,
+    dimensionedScalar& outputDVar
+)
+{
+    label index(lookup(eqnName));
+    if (index < 0)
+    {
+        FatalErrorIn("equationReader::linkOutput")
+            << "Equation name " << eqnName << "not found."
+            << abort(FatalError);
+    }
+    linkOutput
+    (
+        index,
+        outputDVar.value(),
+        outputDVar.name(),
+        outputDVar.dimensions()
+    );
+}
+
+
+void Foam::equationReader::linkOutput
+(
+    const word& eqnName,
+    scalar& value,
+    const word& name,
+    const dimensionSet& dimensions
+)
+{
+    label index(lookup(eqnName));
+    if (index < 0)
+    {
+        FatalErrorIn("equationReader::linkOutput")
+            << "Equation name " << eqnName << "not found."
+            << abort(FatalError);
+    }
+    linkOutput
+    (
+        index,
+        value,
+        name,
+        dimensions
+    );
+}
+
+
+void Foam::equationReader::linkOutput
+(
+    label index,
+    dimensionedScalar& outputDVar
+)
+{
+    linkOutput
+    (
+        index,
+        outputDVar.value(),
+        outputDVar.name(),
+        outputDVar.dimensions()
+    );
+}
+
+
+void Foam::equationReader::linkOutput
+(
+    label index,
+    scalar& value,
+    const word& name,
+    const dimensionSet& dimensions
+)
+{
+    if (index < 0 || index >= eqns_.size())
+    {
+        FatalErrorIn("equationReader::linkOutput")
+            << "Index " << index << " out of range (0, " << eqns_.size() - 1
+            << ")."
+            << abort(FatalError);
+    }
+    outputScalars_.set(index, &value);
+    outputScalarNames_[index] = name;
+    outputScalarDimensions_[index].reset(dimensions);
+}
+
+
+void Foam::equationReader::readEquation
+(
+    equation eqn
+)
+{
+    label index(lookup(eqn.equationName()));
+    if (index < 0)
+    {
+        createEquation(eqn);
+    }
+    else if(eqn.rawText() != eqns_[index].rawText())
+    {
+        eqns_[index].clear();
+    }
+}
+
+
+void Foam::equationReader::readEquation
+(
+    equation eqn,
+    dimensionedScalar& outputDVar
+)
+{
+    readEquation
+    (
+        eqn,
+        outputDVar.value(),
+        outputDVar.name(),
+        outputDVar.dimensions()
+    );
+}
+
+
+void Foam::equationReader::readEquation
+(
+    equation eqn,
+    scalar& value,
+    const word& name,
+    const dimensionSet& dimensions
+)
+{
+    label index(lookup(eqn.equationName()));
+    if (index < 0)
+    {
+        index = eqns_.size();
+        createEquation(eqn);
+    }
+    else if(eqn.rawText() != eqns_[index].rawText())
+    {
+        eqns_[index].clear();
+    }
+    linkOutput(index, value, name, dimensions);
+}
+
+
+void Foam::equationReader::readEquation
+(
+    const dictionary& sourceDict,
+    const word& eqnName
+)
+{
+    equation eqn(sourceDict.lookup(eqnName));
+    eqn.equationName() = eqnName;
+    readEquation(eqn);
+}
+
+
+void Foam::equationReader::readEquation
+(
+    const dictionary& sourceDict,
+    const word& eqnName,
+    dimensionedScalar& outputDVar
+)
+{
+    equation eqn(sourceDict.lookup(eqnName));
+    eqn.equationName() = eqnName;
+    readEquation
+    (
+        eqn,
+        outputDVar.value(),
+        outputDVar.name(),
+        outputDVar.dimensions()
+    );
+}
+
+
+void Foam::equationReader::readEquation
+(
+    const dictionary& sourceDict,
+    const word& eqnName,
+    scalar& value,
+    const word& name,
+    const dimensionSet& dimensions
+)
+{
+    equation eqn(sourceDict.lookup(eqnName));
+    eqn.equationName() = eqnName;
+    readEquation
+    (
+        eqn,
+        value,
+        name,
+        dimensions
+    );
+}
+
+/*
+void Foam::equationReader::createEquation
+(
+    equation eqn,
+    dimensionedScalar * outputDVar
 )
 {
     label index(lookup(eqn.equationName()));
@@ -977,8 +1297,70 @@ void Foam::equationReader::createEquation
         }
         eqns_.setSize(eqns_.size() + 1);
         eqns_.set(eqns_.size() - 1, new equation(eqn));
-        outputDScalars_.setSize(eqns_.size());
-        outputDScalars_.set(eqns_.size() - 1, outputVar);
+
+        outputScalars_.setSize(eqns_.size());
+        outputScalarNames_.setSize(eqns_.size());
+        outputScalarDimensions_.setSize(eqns_.size());
+        if (outputDVar != NULL)
+        {
+            outputScalars_.set(eqns_.size() - 1, & outputDVar->value());
+            outputScalarNames_[eqns_.size() - 1] = outputDVar->name();
+            outputScalarDimensions_.set
+            (
+                eqns_.size() - 1,
+                new dimensionSet(outputDVar->dimensions())
+            );
+        }
+        else
+        {
+            outputScalars_.set(eqns_.size() - 1, NULL);
+            outputScalarNames_[eqns_.size() - 1] = word::null;
+            outputScalarDimensions_.set
+            (
+                eqns_.size() - 1,
+                new dimensionSet(dimless)
+            );
+        }
+    }
+    else
+    {
+        FatalErrorIn("equationReader::createEquation")
+            << "Equation " << eqn.equationName() << " already exists.  Use "
+            << "readEquation to suppress error."
+            << abort(FatalError);
+    }
+}
+
+void Foam::equationReader::createEquation
+(
+    equation eqn,
+    scalar * outputVar,
+    const word& outputName,
+    const dimensionSet& outputDimensions
+)
+{
+    label index(lookup(eqn.equationName()));
+    if (index < 0)
+    {
+        if (debug)
+        {
+            Info << "Creating equation " << eqn.equationName() << " at index "
+                << eqns_.size() << endl;
+        }
+        eqns_.setSize(eqns_.size() + 1);
+        eqns_.set(eqns_.size() - 1, new equation(eqn));
+
+        outputScalars_.setSize(eqns_.size());
+        outputScalarNames_.setSize(eqns_.size());
+        outputScalarDimensions_.setSize(eqns_.size());
+
+        outputScalars_.set(eqns_.size() - 1, outputVar);
+        outputScalarNames_[eqns_.size() - 1] = outputName;
+        outputScalarDimensions_.set
+        (
+            eqns_.size() - 1,
+            new dimensionSet(outputDimensions)
+        );
     }
     else
     {
@@ -991,32 +1373,90 @@ void Foam::equationReader::createEquation
 
 void Foam::equationReader::readEquation
 (
-    const dictionary * sourceDict,
+    const dictionary& sourceDict,
     const word& eqnName,
-    dimensionedScalar * outputVar
+    dimensionedScalar * outputDVar
 )
 {
-    equation eqn(sourceDict->lookup(eqnName));
+    equation eqn(sourceDict.lookup(eqnName));
     eqn.equationName() = eqnName;
 
     readEquation
     (
         eqn,
-        outputVar
+        outputDVar
     );
 }
 
 
 void Foam::equationReader::readEquation
 (
-    Foam::equation eqn,
-    Foam::dimensionedScalar * outputVar
+    const dictionary& sourceDict,
+    const word& eqnName,
+    scalar * outputVar,
+    const word& outputName,
+    const dimensionSet& outputDimensions
+)
+{
+    equation eqn(sourceDict.lookup(eqnName));
+    eqn.equationName() = eqnName;
+
+    readEquation
+    (
+        eqn,
+        outputVar,
+        outputName,
+        outputDimensions
+    );
+}
+
+
+void Foam::equationReader::readEquation
+(
+    equation eqn,
+    dimensionedScalar * outputDVar
 )
 {
     label index(lookup(eqn.equationName()));
     if (index < 0)
     {
-        createEquation(eqn, outputVar);
+        createEquation(eqn, outputDVar);
+        parse(eqns_.size() - 1);
+    }
+    else if
+    (
+        (eqn.rawText() != eqns_[index].rawText())
+     || (!eqns_[index].size())
+    )
+    {
+        eqns_[index].rawText() = eqn.rawText();
+        parse(index);
+        if (outputDVar != NULL)
+        {
+            outputScalars_.set(index, & outputDVar->value());
+            outputScalarNames_[index] = outputDVar->name();
+            outputScalarDimensions_.set
+            (
+                index,
+                new dimensionSet(outputDVar->dimensions())
+            );
+        }
+    }
+}
+
+
+void Foam::equationReader::readEquation
+(
+    equation eqn,
+    scalar * outputVar,
+    const word& outputName,
+    const dimensionSet& outputDimensions
+)
+{
+    label index(lookup(eqn.equationName()));
+    if (index < 0)
+    {
+        createEquation(eqn, outputVar, outputName, outputDimensions);
         parse(eqns_.size() - 1);
     }
     else if
@@ -1026,15 +1466,19 @@ void Foam::equationReader::readEquation
     )
     {
         parse(index);
-        if (outputVar != NULL)
-        {
-            outputDScalars_.set(index, outputVar);
-        }
+        outputScalars_.set(index, outputVar);
+        outputScalarNames_[index] = outputName;
+        outputScalarDimensions_.set
+        (
+            index,
+            new dimensionSet(outputDimensions)
+        );
     }
 }
+*/
 
 
-void Foam::equationReader::update(const Foam::word& equationName)
+void Foam::equationReader::update(const word& equationName)
 {
     label index(lookup(equationName));
     if (index < 0)
@@ -1043,18 +1487,35 @@ void Foam::equationReader::update(const Foam::word& equationName)
             << "Equation name " << equationName << " not found."
             << abort(FatalError);
     }
-    if (outputDScalars_.set(index))
+    if (outputScalars_.set(index))
     {
-        outputDScalars_[index] = evaluate(index);
+        dimensionedScalar eval = evaluate(index);
+        outputScalars_[index] = eval.value();
+        
+        if
+        (
+            !eqns_[index].changeDimensions()
+         && dimensionSet::debug
+         && outputScalarDimensions_[index] != eval.dimensions()
+        )
+        {
+            WarningIn("equationReader::update")
+                << "Dimension error thrown for equation "
+                << eqns_[index].equationName() << ", given by:"
+                << token::NL << token::TAB
+                << eqns_[index].rawText();
+
+            outputScalarDimensions_[index] = eval.dimensions();
+        }
     }
 }
 
 
-void Foam::equationReader::update(const Foam::label& index)
+void Foam::equationReader::update(const label& index)
 {
-    if (outputDScalars_.set(index))
+    if (outputScalars_.set(index))
     {
-        outputDScalars_[index] = evaluate(index);
+        outputScalars_[index] = evaluate(index).value();
     }
 }
 
@@ -1068,7 +1529,7 @@ void Foam::equationReader::update()
 }
 
 
-bool Foam::equationReader::found(const Foam::word& equationName)
+bool Foam::equationReader::found(const word& equationName)
 {
     for (label i = 0; i < eqns_.size(); i++)
     {
@@ -1081,7 +1542,7 @@ bool Foam::equationReader::found(const Foam::word& equationName)
 }
 
 
-Foam::label Foam::equationReader::lookup(const Foam::word& equationName)
+Foam::label Foam::equationReader::lookup(const word& equationName)
 {
     for (label i = 0; i < eqns_.size(); i++)
     {
@@ -1095,7 +1556,7 @@ Foam::label Foam::equationReader::lookup(const Foam::word& equationName)
 }
 
 
-void Foam::equationReader::deleteEquation(const Foam::word& equationName)
+void Foam::equationReader::deleteEquation(const word& equationName)
 {
     label index(lookup(equationName));
     if (index < 0)
@@ -1107,7 +1568,7 @@ void Foam::equationReader::deleteEquation(const Foam::word& equationName)
 }
 
 
-void Foam::equationReader::deleteEquation(const Foam::label& index)
+void Foam::equationReader::deleteEquation(const label& index)
 {
     if ((index < 0) || (index >= eqns_.size()))
     {
@@ -1125,6 +1586,7 @@ void Foam::equationReader::deleteEquation(const Foam::label& index)
 }
 
 
+/*
 void Foam::equationReader::status()
 {
     Info << "*** equationReader object status report ***" << endl;
@@ -1155,9 +1617,9 @@ void Foam::equationReader::status()
     {
         Info << i << ":" << token::TAB << eqns_[i].size() << " operations,"
             << token::TAB << eqns_[i].equationName() << token::TAB;
-        if ((outputDScalars_.size() > i) && outputDScalars_.set(i))
+        if ((outputScalars_.size() > i) && outputScalars_.set(i))
         {
-            Info << "active output to " << outputDScalars_[i].name() << "."
+            Info << "active output to " << outputScalarNames_[i] << "."
                 << endl;
         }
         else
@@ -1172,6 +1634,7 @@ void Foam::equationReader::status()
         Info << token::TAB << eqns_[i].rawText() << endl;
     }
 }
+*/
 
 /*
 template <>

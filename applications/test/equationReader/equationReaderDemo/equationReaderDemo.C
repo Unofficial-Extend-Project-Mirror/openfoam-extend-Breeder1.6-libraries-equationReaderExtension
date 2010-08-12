@@ -37,6 +37,7 @@ Author
 
 #include "argList.H"
 #include "IFstream.H"
+#include "OFstream.H"
 #include "equationReader.H"
 
 using namespace Foam;
@@ -53,16 +54,16 @@ int main(int argc, char *argv[])
     // Create dictionary
     Info << "Reading testDict dictionary" << token::NL << endl;
     IFstream tfIF(path/"testDict");
-    const dictionary * testDict = new dictionary(tfIF);
+    const dictionary testDict(tfIF);
 
     // Demonstrate stand-alone operation
     Info << "Begin stand-alone operation..." << endl;
 
     Info << "Reading a scalar... ";
-    scalar readSa(readScalar(testDict->lookup("standAloneScalar")));
+    scalar readSa(readScalar(testDict.lookup("standAloneScalar")));
     Info << "done.  Result = " << readSa << endl;
     Info << "Reading a dimensionedScalar ... ";
-    dimensionedScalar readDSa(testDict->lookup("standAloneDScalar"));
+    dimensionedScalar readDSa(testDict.lookup("standAloneDScalar"));
     Info << "done.  Result = " << readDSa << token::NL << endl;
 
     // Create the equationReader object
@@ -73,28 +74,23 @@ int main(int argc, char *argv[])
     // -First create the data sources
     Info << "Creating data sources: dictionary ptrs... ";
     IFstream tfIF2(path/"testDict2");
-    const dictionary * testDict2 = new dictionary(tfIF2);
+    const dictionary testDict2(tfIF2);
     IFstream tfIF3(path/"testDict3");
-    const dictionary * testDict3 = new dictionary(tfIF3);
+    const dictionary testDict3(tfIF3);
     Info << "scalars... ";
-    scalar * Sa = new scalar(0.1);
-    scalar * Sb = new scalar(0.2);
-    scalar * Sc = new scalar(0.3);
+    scalar Sa(0.1);
+    scalar Sb(0.2);
+    scalar Sc(0.3);
     Info << "dimensionedScalar ptrs... ";
-    dimensionedScalar * DSa = new dimensionedScalar("DSa", dimless, 1);
-    dimensionedScalar * DSb = new dimensionedScalar("DSb", dimless, 2);
-    dimensionedScalar * DSc = new dimensionedScalar("DSc", dimless, 3);
+    dimensionedScalar DSa("DSa", dimless, 1);
+    dimensionedScalar DSb("DSb", dimless, 2);
+    dimensionedScalar DSc("DSc", dimless, 3);
     Info << "output dimensionedScalar ptrs... ";
-    dimensionedScalar * passiveOutA =
-        new dimensionedScalar("passiveOutA", dimless, 0);
-    dimensionedScalar * activeOutB =
-        new dimensionedScalar("activeOutB", dimless, 0);
-    dimensionedScalar * passiveOutC =
-        new dimensionedScalar("passiveOutC", dimless, 0);
-    dimensionedScalar * passiveOutD = 
-        new dimensionedScalar("passiveOutD", dimless, 0);
-    dimensionedScalar * passiveOutF =
-        new dimensionedScalar("passiveOutF", dimless, 0);
+    dimensionedScalar passiveOutA("passiveOutA", dimless, 0);
+    dimensionedScalar activeOutB("activeOutB", dimless, 0);
+    dimensionedScalar passiveOutC("passiveOutC", dimless, 0);
+    dimensionedScalar passiveOutD("passiveOutD", dimless, 0);
+    dimensionedScalar passiveOutF("passiveOutF", dimless, 0);
     Info << "done." << endl;
 
     Info << "Linking in the data sources: dictionary ptrs... ";
@@ -118,19 +114,19 @@ int main(int argc, char *argv[])
     eqns.readEquation(testDict, "a");
 
     Info << "Evaluating equation a ... ";
-    *passiveOutA = eqns.evaluate("a");
-    Info << "done.  Result = " << *passiveOutA << token::NL << endl;
+    passiveOutA = eqns.evaluate("a");
+    Info << "done.  Result = " << passiveOutA << token::NL << endl;
 
     // Demonstrate active output
     Info << "Reading equation b from testDict, linking an output variable"
         << endl;
     eqns.readEquation(testDict, "b", activeOutB);
     
-    Info << "Output variable before update() = " << *activeOutB << endl;
+    Info << "Output variable before update() = " << activeOutB << endl;
     Info << "Begining .update() - this evaluates all equations with active "
         << "output..." << endl;
     eqns.update();
-    Info << "Done.  Output variable after update() = " << *activeOutB
+    Info << "Done.  Output variable after update() = " << activeOutB
         << token::NL << endl;
 
     // Demonstrating variable dependence
@@ -141,8 +137,8 @@ int main(int argc, char *argv[])
     Info << "done." << endl;
     Info << "Evaluating c will force an evaluate of a." << endl;
     Info << "Evaluating ... ";
-    *passiveOutC = eqns.evaluate("c");
-    Info << "done.  Result = " << *passiveOutC << token::NL << endl;
+    passiveOutC = eqns.evaluate("c");
+    Info << "done.  Result = " << passiveOutC << token::NL << endl;
 
     // Demonstrate on-the-fly equation creation
     Info << "Equation d depends on equation e, but equation e is never "
@@ -154,8 +150,8 @@ int main(int argc, char *argv[])
     Info << "done." << endl << "Again, evaluating d will force an evaluate of "
         << "e." << endl;
     Info << "Evaluating d ... ";
-    *passiveOutD = eqns.evaluate("d");
-    Info << "done.  The result is = " << *passiveOutD << token::NL << endl;
+    passiveOutD = eqns.evaluate("d");
+    Info << "done.  The result is = " << passiveOutD << token::NL << endl;
 
     // Demonstrate dependence
     Info << "Equations can draw from any sources added to equationReader." << endl;
@@ -163,8 +159,13 @@ int main(int argc, char *argv[])
     Info << "Reading equation f ... ";
     eqns.readEquation(testDict, "f");
     Info << "done.  Evaluating equation f ... ";
-    *passiveOutF = eqns.evaluate("f");
-    Info << "done." << token::NL << "The result is: " << *passiveOutF << endl;
+    passiveOutF = eqns.evaluate("f");
+    Info << "done." << token::NL << "The result is: " << passiveOutF << endl;
+    
+    Info << token::NL << "Creating output..." << endl;
+    OFstream os(path/"outputDict");
+    os << eqns;
+    eqns.dataSourceStatus(os);
     
     return(0);
 }

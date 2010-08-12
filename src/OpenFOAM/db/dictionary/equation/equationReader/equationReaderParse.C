@@ -27,7 +27,7 @@ License
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-void Foam::equationReader::parse(Foam::label index)
+void Foam::equationReader::parse(label index)
 {
     if (debug)
     {
@@ -517,12 +517,12 @@ Info << "Map is: " << map << endl;
 
 Foam::label Foam::equationReader::parseExpression
 (
-    Foam::label index,
-    const Foam::tokenList& tl,
-    const Foam::labelList& opLvl,
-    Foam::equationOperationList& map,
-    const Foam::labelList& indices,
-    Foam::label& storeIndex
+    label index,
+    const tokenList& tl,
+    const labelList& opLvl,
+    equationOperationList& map,
+    const labelList& indices,
+    label& storeIndex
 )
 {
 //    equation * eqn(&this->operator[](index));

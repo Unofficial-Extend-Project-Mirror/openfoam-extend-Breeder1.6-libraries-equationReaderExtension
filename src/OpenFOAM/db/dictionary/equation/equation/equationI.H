@@ -35,20 +35,36 @@ inline const word& equation::equationName() const
     return equationName_;
 }
 
+
 inline word& equation::equationName()
 {
     return equationName_;
 }
+
 
 inline const string& equation::rawText() const
 {
     return rawText_;
 }
 
-inline string& equation::rawtext()
+
+inline string& equation::rawText()
 {
     return rawText_;
 }
+
+
+inline const dimensionedScalar& equation::lastResult() const
+{
+    return lastResult_;
+}
+
+
+inline dimensionedScalar& equation::lastResult()
+{
+    return lastResult_;
+}
+
 
 inline const equationOperationList& equation::ops() const
 {
@@ -87,15 +103,18 @@ inline const dimensionSet& equation::overrideDimensions() const
     return overrideDimensions_;
 }
 
+
 inline dimensionSet& equation::overrideDimensions()
 {
     return overrideDimensions_;
 }
 
+
 inline const bool& equation::changeDimensions() const
 {
     return changeDimensions_;
 }
+
 
 inline bool& equation::changeDimensions()
 {

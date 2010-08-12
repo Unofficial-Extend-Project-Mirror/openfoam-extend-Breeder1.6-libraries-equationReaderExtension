@@ -12,7 +12,7 @@
         )
     );
 
-    dimensionedScalar * nu = new dimensionedScalar
+    dimensionedScalar nu
     (
         transportProperties.lookup("nu")
     );
@@ -31,6 +31,25 @@
         mesh
     );
 
+    Info<< "Creating dummy field\n" << endl;
+    volScalarField dummy
+    (
+        IOobject
+        (
+            "dummy",
+            runTime.timeName(),
+            mesh,
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+        ),
+        p
+    );
+    dummy.dimensions().reset(dimless);
+    Info << "Dummy name " << dummy.name() << endl;
+    forAll(dummy, i)
+    {
+        dummy[i] = i;
+    }
 
     Info<< "Reading field U\n" << endl;
     volVectorField U

@@ -83,6 +83,7 @@ public:
             sldictSource,
             slexternalDScalar,
             slexternalScalar,
+            slexternalScalarList,
             slinternalScalar,
             slequation,
             slstorage
@@ -144,9 +145,24 @@ public:
 
 private:
 
+    // List to read the data from
     sourceListType sourceList_;
+    
+    // Index in the list where the data is located.  Note, the
+    // equationOperationLists created by equationReader make this variable a
+    // 1-indexed (i.e. starts from 1, not zero) in order to use its sign to
+    // store the sign of the variable.  The sourceLists are zero-indexed, so
+    // equationReader will constantly be adding / subtracting 1 to get these
+    // to match
     label sourceIndex_;
+    
+    // Rather than store the keywords that have to be searched in a dictionary,
+    // equationReader keeps its own list of keywords, and the dictLookupIndex
+    // is the index in this list.  This is only applicable if the sourceList is
+    // of type sldictSource
     label dictLookupIndex_;
+    
+    // The operation to be performed (+ - sin exp min, etc...)
     operationType operation_;
 
 public:

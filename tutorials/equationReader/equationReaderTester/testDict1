@@ -40,11 +40,10 @@ Pe  "Sa+(Sb*Sc^(Sd-Se/Sf^(Sg+Sh^Si)))";
 Pf  "DSa+(DSb*DSc^(DSd-DSe/DSf^inv(DSg+DSh^DSi)))";
 
 // Active equations
-Aa  "twob/log10(twoc*10)+cosh(threef) * DStime/Sa+fiveg^max(sixf,sevenj)";
+Aa  "twob/log10(twoc*10)+cosh(threef) * DStime/Sa+fiveg^max(sixf,sevenj) * dummy";
 Ab  "fourf*log(pos(sevend))*inv(stabilise(Af, SMALL_))";
-Ac  "DSo + DSm * erf(e_^0) + Ad*Ae+Ad";
+Ac  "DSo + DSm * erf(e_^0) + Ad*Ae+Ad + pdimless";
 Ad  "Ae+Ae*Af+Pb*inv(stabilise(Af, SMALL_))^Pe+DStime^DSa*twog+sevenh";
 Ae  "threej + eightg / nineb*DSk - lgamma(ninej)";
 Af  "fiveg^fivec+eighti";
 nu  [0 2 -1 0 0 0 0] "0.01 + nuAdd";
-
