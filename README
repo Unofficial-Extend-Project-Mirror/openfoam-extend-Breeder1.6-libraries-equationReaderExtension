@@ -59,3 +59,9 @@ History
     * Removed need for pointers
     * Added support for scalarLists as a data source
     * Cleaned up available functions
+ 2010-10-16:
+    * Added full support for fields - equationReader can now operate across the
+        entire mesh.
+    * Bug fixes:
+        * Dimension-checking for min and max functions
+        * Moved IOobjects to db directory

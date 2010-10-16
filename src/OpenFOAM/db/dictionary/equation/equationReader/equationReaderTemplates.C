@@ -35,7 +35,74 @@ void Foam::equationReader::addDataSource
 //    const scalarList * slist(&dfield);
     word name(dfield.name());
     dimensionSet dims(dfield.dimensions());
-    addDataSource(dfield, name, dims);    
+    addDataSource(dfield, name, dims);
 }
+
+
+template<class GeoMesh>
+void Foam::equationReader::evaluateField
+(
+    const label& index,
+    DimensionedField<scalar, GeoMesh>& dfield
+)
+{
+    evaluateField(index, dfield, dfield.dimensions());
+}
+
+
+template<class GeoMesh>
+void Foam::equationReader::linkOutput
+(
+    const word& eqnName,
+    DimensionedField<scalar, GeoMesh>& dfield
+)
+{
+    label index(lookup(eqnName));
+    if (index < 0)
+    {
+        FatalErrorIn("equationReader::linkOutput")
+            << "Equation name " << eqnName << "not found."
+            << abort(FatalError);
+    }
+    linkOutput
+    (
+        index,
+        dfield,
+        dfield.dimensions()
+    );
+}
+
+
+template<class GeoMesh>
+void Foam::equationReader::linkOutput
+(
+    label index,
+    DimensionedField<scalar, GeoMesh>& dfield
+)
+{
+    linkOutput
+    (
+        index,
+        dfield,
+        dfield.dimensions()
+    );
+}
+
+
+template<class GeoMesh>
+void Foam::equationReader::readEquation
+(
+    equation eqn,
+    DimensionedField<scalar, GeoMesh>& dfield
+)
+{
+    readEquation
+    (
+        eqn,
+        dfield,
+        dfield.dimensions()
+    );
+}
+
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

@@ -113,6 +113,10 @@ Foam::dimensionedScalar Foam::equationReader::evaluate
                     storageOffset
                 )
             );
+            if (eqns_[index].changeDimensions())
+            {
+                source.dimensions().reset(dimless);
+            }
         }
 
         if (debug > 1)
@@ -205,9 +209,13 @@ Foam::dimensionedScalar Foam::equationReader::evaluate
                     )
                     {
                         WarningIn("equationReader::evaluate")
-                            << "Dimension error thrown for equation "
-                            << eqns_[index].equationName() << ", given by:"
-                            << token::NL << token::TAB
+                            << "Dimension error thrown for operation ["
+                            << equationOperation::opName
+                            (
+                                eqns_[index].ops()[i].operation()
+                            )
+                            << "] in equation " << eqns_[index].equationName()
+                            << ", given by:" << token::NL << token::TAB
                             << eqns_[index].rawText();
                     }
                     ds = ds + source;
@@ -233,10 +241,14 @@ Foam::dimensionedScalar Foam::equationReader::evaluate
                     )
                     {
                         WarningIn("equationReader::evaluate")
-                            << "Dimension error thrown for equation "
-                            << eqns_[index].equationName() << ", given by:"
-                            << token::NL << token::TAB
-                            << eqns_[index].rawText() << token::NL << endl;
+                            << "Dimension error thrown for operation ["
+                            << equationOperation::opName
+                            (
+                                eqns_[index].ops()[i].operation()
+                            )
+                            << "] in equation " << eqns_[index].equationName()
+                            << ", given by:" << token::NL << token::TAB
+                            << eqns_[index].rawText();
                     }
                     ds = ds - source;
                 }
@@ -774,7 +786,36 @@ Foam::dimensionedScalar Foam::equationReader::evaluate
                         << "parameters."
                         << abort(FatalError);
                 }
-                dsEqual(ds, max(ds, source));
+                if (eqns_[index].changeDimensions())
+                {
+                    dimensionedScalar dsTemp
+                    (
+                        "dsTemp",
+                        dimless,
+                        ds.value() + source.value()
+                    );
+                    dsEqual(ds, max(ds, dsTemp));
+                }
+                else
+                {
+                    if
+                    (
+                        dimensionSet::debug
+                     && (ds.dimensions() != source.dimensions())
+                    )
+                    {
+                        WarningIn("equationReader::evaluate")
+                            << "Dimension error thrown for operation ["
+                            << equationOperation::opName
+                            (
+                                eqns_[index].ops()[i].operation()
+                            )
+                            << "] in equation " << eqns_[index].equationName()
+                            << ", given by:" << token::NL << token::TAB
+                            << eqns_[index].rawText();
+                    }
+                    dsEqual(ds, max(ds, source));
+                }
                 break;
             }
             case equationOperation::otmin:
@@ -789,7 +830,36 @@ Foam::dimensionedScalar Foam::equationReader::evaluate
                         << "parameters."
                         << abort(FatalError);
                 }
-                dsEqual(ds, min(ds, source));
+                if (eqns_[index].changeDimensions())
+                {
+                    dimensionedScalar dsTemp
+                    (
+                        "dsTemp",
+                        dimless,
+                        ds.value() + source.value()
+                    );
+                    dsEqual(ds, min(ds, dsTemp));
+                }
+                else
+                {
+                    if
+                    (
+                        dimensionSet::debug
+                     && (ds.dimensions() != source.dimensions())
+                    )
+                    {
+                        WarningIn("equationReader::evaluate")
+                            << "Dimension error thrown for operation ["
+                            << equationOperation::opName
+                            (
+                                eqns_[index].ops()[i].operation()
+                            )
+                            << "] in equation " << eqns_[index].equationName()
+                            << ", given by:" << token::NL << token::TAB
+                            << eqns_[index].rawText();
+                    }
+                    dsEqual(ds, min(ds, source));
+                }
                 break;
             }
             case equationOperation::otstabilise:
@@ -834,5 +904,39 @@ Foam::dimensionedScalar Foam::equationReader::evaluate
     dsEqual(eqns_[index].lastResult(), ds);
     return ds;
 }
+
+
+void Foam::equationReader::evaluateField
+(
+    const label& index,
+    scalarList& outputSList,
+    dimensionSet& dimensions
+)
+{
+    setListIndex(0);
+    dimensionedScalar eval = evaluate(index);
+    outputSList[0] = eval.value();
+    for(label i(1); i < outputSList.size(); i++)
+    {
+        setListIndex(i);
+        outputSList[i] = evaluate(index).value();
+    }
+    if
+    (
+        !eqns_[index].changeDimensions()
+     && dimensionSet::debug
+     && dimensions != eval.dimensions()
+    )
+    {
+        WarningIn("equationReader::update")
+            << "Dimension error thrown for equation "
+            << eqns_[index].equationName() << ", given by:"
+            << token::NL << token::TAB
+            << eqns_[index].rawText();
+
+        dimensions = eval.dimensions();
+    }
+}
+
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

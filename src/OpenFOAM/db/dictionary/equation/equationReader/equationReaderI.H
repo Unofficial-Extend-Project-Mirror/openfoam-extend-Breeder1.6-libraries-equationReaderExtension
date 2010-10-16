@@ -194,6 +194,33 @@ inline
     return outputScalarDimensions_;
 }
 
+
+inline const
+    UPtrList< scalarList>& equationReader::outputScalarLists() const
+{
+    return outputScalarLists_;
+}
+
+//- Access to pointers to output scalarLists
+inline UPtrList<scalarList>& equationReader::outputScalarLists()
+{
+    return outputScalarLists_;
+}
+
+//- Const access to dimensions associated with outputScalarLists
+inline const
+    PtrList<dimensionSet>& equationReader::outputScalarListDimensions() const
+{
+    return outputScalarListDimensions_;
+}
+
+//- Access to dimensions associated with outputScalarLists
+inline PtrList<dimensionSet>& equationReader::outputScalarListDimensions()
+{
+    return outputScalarListDimensions_;
+}
+
+
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
