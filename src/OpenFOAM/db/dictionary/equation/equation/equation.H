@@ -44,7 +44,7 @@ Author
 #define equation_H
 
 #include "equationOperationList.H"
-#include "dimensionedScalar.H"
+//#include "dimensionedScalar.H"
 #include "scalarList.H"
 #include "dimensionSet.H"
 

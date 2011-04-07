@@ -44,6 +44,7 @@ Author
 #include "word.H"
 #include "label.H"
 #include "IOstreams.H"
+#include "dimensionedScalar.H"
 // #include "Istream.H"
 // #include "Ostream.H"
 
@@ -55,6 +56,7 @@ namespace Foam
 // Forward declaration of friend functions and operators
 
 class equationOperation;
+class equationReader;
 
 // Friend Operators
 
@@ -164,6 +166,29 @@ private:
     
     // The operation to be performed (+ - sin exp min, etc...)
     operationType operation_;
+    
+    // A pointer to the source data retrieval function
+    dimensionedScalar (Foam::equationReader::*getSourceFunction_)
+    (
+        equationReader * eqnReader,
+        const label equationIndex,
+        const label equationOperationIndex,
+        const label maxStoreIndex,
+        const label storageOffset
+    );
+
+    // A pointer to the operation to be performed
+    void (Foam::equationReader::*opFunction_)
+    (
+        equationReader * eqnReader,
+        const label index,
+        const label i,
+        const label storageOffset,
+        label& storageIndex,
+        dimensionedScalar& ds,
+        dimensionedScalar source
+    );
+
 
 public:
 
@@ -182,7 +207,25 @@ public:
             sourceListType sourceList,
             label sourceIndex,
             label dictLookupIndex,
-            operationType operation
+            operationType operation,
+            dimensionedScalar (Foam::equationReader::*getSourceFunction)
+            (
+                equationReader *,
+                const label,
+                const label,
+                const label,
+                const label
+            ) = NULL,
+            void (Foam::equationReader::*opFunction)
+            (
+                equationReader *,
+                const label,
+                const label,
+                const label,
+                label&,
+                dimensionedScalar&,
+                dimensionedScalar
+            ) = NULL
         );
 
 
@@ -216,7 +259,60 @@ public:
             
             //- Access to operation
             inline operationType& operation();
+
+        // Function pointers
             
+            //- Assign the operation function
+            void assignSourceFunction
+            (
+                dimensionedScalar (Foam::equationReader::*getSourceFunction)
+                (
+                    equationReader *,
+                    const label,
+                    const label,
+                    const label,
+                    const label
+                )
+            );
+
+            void assignOpFunction
+            (
+                void (Foam::equationReader::*opFunction)
+                (
+                    equationReader *,
+                    const label,
+                    const label,
+                    const label,
+                    label&,
+                    dimensionedScalar&,
+                    dimensionedScalar
+                )
+            );
+            
+            //- Call the getSource function
+            dimensionedScalar getSourceFunction
+            (
+                equationReader * eqnReader,
+                const label equationIndex,
+                const label equationOperationIndex,
+                const label maxStoreIndex,
+                const label storageOffset
+            );
+
+            //- Call the operation function
+            void opFunction
+            (
+                equationReader * eqnReader,
+                const label index,
+                const label i,
+                const label storageOffset,
+                label& storageIndex,
+                dimensionedScalar& ds,
+                dimensionedScalar source
+            );
+
+        // Convenience
+                    
             //- Look up operation number, given a word
             static operationType findOp(const word& opName);
 

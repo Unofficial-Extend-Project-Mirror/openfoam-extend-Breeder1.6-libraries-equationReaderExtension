@@ -24,7 +24,12 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "equationOperationList.H"
+#include "dimensionedScalar.H"
+#include "equationReader.H"
+#include "equationOperation.H"
+//#include "equationOperationList.H"
+
+class dimensionedScalar;
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -39,16 +44,36 @@ Foam::equationOperation::equationOperation()
 
 Foam::equationOperation::equationOperation
 (
-    Foam::equationOperation::sourceListType sourceList,
-    Foam::label sourceIndex,
-    Foam::label dictLookupIndex,
-    Foam::equationOperation::operationType operation
+    sourceListType sourceList,
+    label sourceIndex,
+    label dictLookupIndex,
+    operationType operation,
+    dimensionedScalar (Foam::equationReader::*getSourceFunction)
+    (
+        equationReader *,
+        const label,
+        const label,
+        const label,
+        const label
+    ),
+    void (Foam::equationReader::*opFunction)
+    (
+        equationReader *,
+        const label,
+        const label,
+        const label,
+        label&,
+        dimensionedScalar&,
+        dimensionedScalar
+    )
 )
 :
     sourceList_(sourceList),
     sourceIndex_(sourceIndex),
     dictLookupIndex_(dictLookupIndex),
-    operation_(operation)
+    operation_(operation),
+    getSourceFunction_(getSourceFunction),
+    opFunction_(opFunction)
 {}
 
 
@@ -399,6 +424,84 @@ Foam::word Foam::equationOperation::sourceName
         case slstorage:
             return "memory";
     }
+}
+
+
+void Foam::equationOperation::assignSourceFunction
+(
+    dimensionedScalar (Foam::equationReader::*getSourceFunction)
+    (
+        equationReader *,
+        const label,
+        const label,
+        const label,
+        const label
+    )
+)
+{
+    getSourceFunction_ = getSourceFunction;
+}
+
+
+void Foam::equationOperation::assignOpFunction
+(
+    void (Foam::equationReader::*opFunction)
+    (
+        equationReader *,
+        const label,
+        const label,
+        const label,
+        label&,
+        dimensionedScalar&,
+        dimensionedScalar
+    )
+)
+{
+    opFunction_ = opFunction;
+}
+
+
+Foam::dimensionedScalar Foam::equationOperation::getSourceFunction
+(
+    equationReader * eqnReader,
+    const label equationIndex,
+    const label equationOperationIndex,
+    const label maxStoreIndex,
+    const label storageOffset
+)
+{
+    return (eqnReader->*getSourceFunction_)
+    (
+        eqnReader,
+        equationIndex,
+        equationOperationIndex,
+        maxStoreIndex,
+        storageOffset
+    );
+}
+
+
+void Foam::equationOperation::opFunction
+(
+    equationReader * eqnReader,
+    const label index,
+    const label i,
+    const label storageOffset,
+    label& storageIndex,
+    dimensionedScalar& ds,
+    dimensionedScalar source
+)
+{
+    (eqnReader->*opFunction_)
+    (
+        eqnReader,
+        index,
+        i,
+        storageOffset,
+        storageIndex,
+        ds,
+        source
+    );
 }
 
 

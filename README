@@ -35,10 +35,10 @@ Contents
         src/OpenFOAM/primitives/Scalar
  - A demo application (equationReaderDemo) that demonstrates the basic use of
    equationReader.  After installation, this should end up in:
-        applications/test/equationReader/equationReaderDemo
+        applications/solvers/equationReader/equationReaderDemo
  - A test application (equationReaderTester) that puts the equationReader
    through a series of tests with an integrated solver.  This should end up in:
-        applications/test/equationReader/equationReaderTester
+        applications/solvers/equationReader/equationReaderTester
  - Tutorial directories for both of these applications.  These should end up
    in:
         tutorials/equationReader/
@@ -48,6 +48,8 @@ Required OpenFOAM-Version (Known to work with)
 1.5
 1.5-dev
 1.6
+1.6-ext
+1.7.1
 
 History
 =======
@@ -65,3 +67,8 @@ History
     * Bug fixes:
         * Dimension-checking for min and max functions
         * Moved IOobjects to db directory
+ 2011-04-06:
+    * Major efficiency improvement - pointer functions have been implemented to increase computation speed by an order of magnitude (at least).
+    * Improved dimension-checking on all functions.
+    * Added a fieldEvaluate function for active equations whose output is to a scalar field.
+    * Bug fix to get it working with 1.6-ext and higher.

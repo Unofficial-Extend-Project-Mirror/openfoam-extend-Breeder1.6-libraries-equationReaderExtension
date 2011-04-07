@@ -27,15 +27,15 @@ a   "5 / 2^3";
 b   "cos(5 * theta + 8)";
 
 // This one demonstrates variable dependence - a is another equation; DSa is a
-// dimensionedScalar explicitly added to the equationMaster; and Sb is a scalar
-// added to the equationMaster
+// dimensionedScalar explicitly added to the equationReader; and Sb is a scalar
+// added to the equationReader
 c   "a^2 + DSa - cbrt(Sb)";
 
 // This one demonstrates on-the-fly equation parsing - it depends on equation
 // e, but equation e is never explicitly read in equationTester.C.
 d   "2 * exp(inv(e)^2)";
 
-// equationMaster will automatically find and parse equation e when evaluating
+// equationReader will automatically find and parse equation e when evaluating
 // equation d.
 //e   "1 / (a + SMALL_)";
 e   7;

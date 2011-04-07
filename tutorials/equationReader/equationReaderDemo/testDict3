@@ -18,7 +18,7 @@ dictThreeA  "alpha + beta";
 
 dictThreeB  "dictThreeA + alpha";
 
-// Uh oh - a duplicate variable.  equationMaster doesn't check for these.
+// Uh oh - a duplicate variable.  equationReader doesn't check for these.
 // It's anyone's guess which one will be used...
 arbitrary 1;
 

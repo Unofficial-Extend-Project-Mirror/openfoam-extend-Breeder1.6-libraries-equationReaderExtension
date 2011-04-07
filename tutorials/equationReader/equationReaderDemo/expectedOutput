@@ -1,17 +1,19 @@
 /*---------------------------------------------------------------------------*\
 | =========                 |                                                 |
-| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
-|  \\    /   O peration     | Version:  1.5-dev                               |
-|   \\  /    A nd           | Revision: exported                              |
-|    \\/     M anipulation  | Web:      http://www.OpenFOAM.org               |
+| \\      /  F ield         | OpenFOAM Extend Project: Open source CFD        |
+|  \\    /   O peration     | Version:  1.6-ext                               |
+|   \\  /    A nd           | Web:      www.extend-project.de                 |
+|    \\/     M anipulation  |                                                 |
 \*---------------------------------------------------------------------------*/
+Build  : 1.6-ext-1f09367282cf
 Exec   : equationReaderDemo
-Date   : Aug 12 2010
-Time   : 13:21:31
-Host   : [host]
-PID    : 8307
-Case   : [casePath]
+Date   : Apr 07 2011
+Time   : 09:03:55
+Host   : Bruce
+PID    : 4063
+Case   : /home/dave/OpenFOAM/dave-1.6-ext/run/tutorials/equationReaderDemo
 nProcs : 1
+SigFpe : Enabling floating point exception trapping (FOAM_SIGFPE).
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 Reading testDict dictionary

@@ -42,15 +42,11 @@ void Foam::equationReader::parse(label index)
             << abort(FatalError);
     }
     
-//    equation * eqn(&this->operator[](index));
-//    eqn->internalScalars()->clear();
-//    eqn->dictLookups().clear();
     eqns_[index].clear();
 
-    // First, ensure there are no ':' characters.  This is to accommodate the
-    // fact that token doesn't recognize '^' as punctuation
-//    size_t position(eqns_[index].rawText().string::find(":"));
-//    size_t position(eqns_[index].rawText().string::find(":"));
+    // First, ensure there are no ':' or '&' characters.  This is to
+    // accommodate the stringPreconditioner, which uses these special
+    // characters as work-arounds to limitations imposed by the token class.
     if
     (
         eqns_[index].rawText().string::find(":") != string::npos
@@ -102,7 +98,8 @@ void Foam::equationReader::parse(label index)
     labelList pl(tl.size());
     
     createMap(index, tl, map, opLvl, pl);
-/*
+
+/* Useful for debugging, left in
 Info << "tokenList: " << endl;
 forAll(tl, i)
 {
@@ -121,13 +118,10 @@ Info << " isWord ";
 }
 Info << endl;
 }
-
 Info << "opLvl is: " << opLvl << endl;
 Info << "pl is: " << pl << endl;
 Info << "Map is: " << map << endl;
 */
-    // Bug fix
-//    eqn = &this->operator[](index);
 
     // In the main parsing loop, we create labelLists of indices that specify
     // what part of the equation we are working with.  As the equation is
@@ -239,9 +233,6 @@ Info << "Map is: " << map << endl;
                     storeIndex
                 )
             );
-
-            // Bug fix - reassign the pointer
-//            eqn = &this->operator[](index);
 
             trimListWithParent
             (
@@ -369,8 +360,6 @@ Info << "Map is: " << map << endl;
                     storeIndex
                 )
             );
-            // Bug fix - reassign the pointer
-//            eqn = &this->operator[](index);
             
             trimListWithParent
             (
@@ -394,8 +383,6 @@ Info << "Map is: " << map << endl;
                     storeIndex
                 )
             );
-            // Bug fix - reassign the pointer
-//            eqn = &this->operator[](index);
 
             trimListWithParent
             (
@@ -477,6 +464,7 @@ Info << "Map is: " << map << endl;
     // will complete their parse with an empty operation list
     if (eqns_[index].size() == 0)
     {
+
         labelList subEqnIndices(findMaxParenthesis(pl, eqnIndices));
         absorbNegatives(index, tl, eqnIndices, subEqnIndices, map, opLvl);
 
@@ -508,10 +496,32 @@ Info << "Map is: " << map << endl;
             map[subEqnIndices[0]].dictLookupIndex(),
             equationOperation::otretrieve
         );
+        
+        // Store this result
+        eqns_[index].ops()[eqns_[index].size() - 1] = equationOperation
+        (
+            equationOperation::slstorage,
+            storeIndex + 1,
+            0,                        
+            equationOperation::otstore
+        );
+
     }
 
-    // Remove the last operation, as it is an otstore
-    eqns_[index].setSize(eqns_[index].size() - 1);
+    // The last operation is an otstore.  Add an otretrieve to finalize.
+    // We could eliminate the last otstore, but this will miss the final
+    // absorbNegatives, if one existed.
+    eqns_[index].setSize(eqns_[index].size() + 1);
+    eqns_[index].ops()[eqns_[index].size() - 1] = equationOperation
+    (
+        map[eqnIndices[0]].sourceList(),
+        map[eqnIndices[0]].sourceIndex(),
+        map[eqnIndices[0]].dictLookupIndex(),
+        equationOperation::otretrieve
+    );
+
+    // Link the eval function pointers (for efficiency)
+    assignFunctionPointers(index);
 }
 
 

@@ -102,6 +102,16 @@ Foam::string Foam::equationReader::stringPreconditioner(const string& rawText)
     stringReplaceAll(rawWorking, "*", " * ");
     stringReplaceAll(rawWorking, "/", " / ");
     stringReplaceAll(rawWorking, ",", " , ");
+    
+    // Leading negative workaround
+    // This solution leads to dimensional problems
+/*    IStringStream rawStream(rawWorking);
+    token firstToken(rawStream);
+    if (firstToken.isPunctuation() && firstToken.pToken() == token::SUBTRACT)
+    {
+        rawWorking.insert(0, "0");
+    }
+*/
     return rawWorking;
 }
 
@@ -230,7 +240,7 @@ void Foam::equationReader::absorbNegatives
 )
 {
     // Negatives are identified by a map with a negative sourceIndex
-    // To accommodate this behaviour, source indices are 1-index.
+    // To accommodate this behaviour, source indices are 1-indexed in the map.
     forAll(subEqnIndices, i)
     {
         if (map[subEqnIndices[i]].dictLookupIndex() == -1)
@@ -255,7 +265,7 @@ void Foam::equationReader::absorbNegatives
             }
             map[subEqnIndices[i + 1]].sourceIndex() = 
                 -map[subEqnIndices[i + 1]].sourceIndex();
-            
+
             trimListWithParent(eqnIndices, subEqnIndices, i, i);
         }
     }
@@ -561,188 +571,6 @@ Foam::equationOperation Foam::equationReader::findSource
 }
 
 
-Foam::dimensionedScalar Foam::equationReader::getSource
-(
-    const label equationIndex,
-    const label equationOperationIndex,
-    const label maxStoreIndex,
-    const label storageOffset
-)
-{
-    dimensionedScalar returnMe("noSource", dimless, 0);
-    const equation& eqn(eqns_[equationIndex]);
-    const equationOperation& eqOp(eqn[equationOperationIndex]);
-    label zeroSourceIndex = mag(eqOp.sourceIndex()) - 1;
-
-    switch (eqOp.sourceList())
-    {
-        case equationOperation::slnone:
-            dsEqual(returnMe, dimensionedScalar("noSource", dimless, 0));
-            break;
-        case equationOperation::sldictSource:
-        {
-            if (zeroSourceIndex >= dictSources_.size())
-            {
-                FatalErrorIn("equationReader::getSouce")
-                    << "Index " << zeroSourceIndex << " out of bounds (0, "
-                    << dictSources_.size() - 1 << ")"
-                    << abort(FatalError);
-            }
-
-            // Accepts scalars, dimensionedScalars
-            word varName(dictLookups_[eqOp.dictLookupIndex()]);
-            
-            ITstream srcStrm
-            (
-                dictSources_[zeroSourceIndex].lookup(varName)
-            );
-            if (isDimensionedScalar(srcStrm))
-            {
-                srcStrm >> returnMe;
-            }
-            else if (isScalar(srcStrm))
-            {
-                returnMe.name() = varName;
-                returnMe.value() = readScalar(srcStrm);
-            }
-            else
-            {
-                // Neither scalar nor dimensionedScalar
-                FatalIOErrorIn
-                (
-                    "equationReader::getSource",
-                    dictSources_[zeroSourceIndex]
-                )
-                    << "Expecting a scalar or a dimensionedScalar.  Keyword "
-                    << varName << " is referenced by an equation, and therfore"
-                    << " can only be one of these two types."
-                    << exit(FatalIOError);
-            }
-            break;
-        }
-        case equationOperation::slexternalDScalar:
-            if (zeroSourceIndex >= externalDScalars_.size())
-            {
-                FatalErrorIn("equationReader::getSouce")
-                    << "Index " << zeroSourceIndex << " out of bounds (0, "
-                    << externalDScalars_.size() - 1 << ")"
-                    << abort(FatalError);
-            }
-            dsEqual(returnMe, externalDScalars_[zeroSourceIndex]);
-            break;
-        case equationOperation::slexternalScalar:
-            if (zeroSourceIndex >= externalScalars_.size())
-            {
-                FatalErrorIn("equationReader::getSouce")
-                    << "Index " << zeroSourceIndex << " out of bounds (0, "
-                    << externalScalars_.size() - 1 << ")"
-                    << abort(FatalError);
-            }
-            returnMe.name() = externalScalarNames_[zeroSourceIndex];
-            returnMe.value() = externalScalars_[zeroSourceIndex];
-            returnMe.dimensions().reset
-            (
-                externalScalarDimensions_[zeroSourceIndex]
-            );
-            break;
-        case equationOperation::slexternalScalarList:
-            if (zeroSourceIndex >= externalScalarLists_.size())
-            {
-                FatalErrorIn("equationReader::getSouce")
-                    << "Index " << zeroSourceIndex << " out of bounds (0, "
-                    << externalScalarLists_.size() - 1 << ")"
-                    << abort(FatalError);
-            }
-            dsEqual
-            (
-                returnMe,
-                dimensionedScalar
-                (
-                    externalScalarListNames_[zeroSourceIndex],
-                    externalScalarListDimensions_[zeroSourceIndex],
-                    externalScalarLists_
-                        [zeroSourceIndex]
-                        [externalScalarListIndex_[zeroSourceIndex]]
-                )
-            );
-            break;
-        case equationOperation::slinternalScalar:
-            if (zeroSourceIndex >= internalScalars_.size())
-            {
-                FatalErrorIn("equationReader::getSouce")
-                    << "Index " << zeroSourceIndex << " out of bounds (0, "
-                    << internalScalars_.size() - 1 << ")"
-                    << abort(FatalError);
-            }
-            returnMe.name() = "internalConstant";
-            returnMe.value() =
-                internalScalars_[zeroSourceIndex];
-            break;
-        case equationOperation::slequation:
-            if  (zeroSourceIndex >= eqns_.size())
-            {
-                FatalErrorIn("equationReader::getSouce")
-                    << "Index " << zeroSourceIndex << " out of bounds (0, "
-                    << eqns_.size() - 1 << ")"
-                    << abort(FatalError);
-            }
-            
-            // Check for circular references
-            dependents_.setSize(dependents_.size() + 1);
-            dependents_[dependents_.size() - 1] = equationIndex;
-            forAll(dependents_, i)
-            {
-                if (dependents_[i] == zeroSourceIndex)
-                {
-                    // Circular reference detected
-                    
-                    string dependencies;
-                    for (label j(i); j < dependents_.size(); j++)
-                    {
-                        dependencies.append
-                        (
-                            eqns_[j].equationName()
-                        );
-                        dependencies.append("-->");
-                    }
-                    dependencies.append(eqns_[i].equationName());
-                    FatalErrorIn("masterEquation::getSource")
-                        << "Circular reference detected when evaluating "
-                        << "the equation for " << eqn.equationName()
-                        << ", given by:" << token::NL << token::TAB
-                        << eqn.rawText() << token::NL << "The circular "
-                        << "dependency is:" << token::NL << token::TAB
-                        << dependencies
-                        << abort(FatalError);
-                }
-            }
-            if (debug)
-            {
-                Info << "Embedded equation dispatch." << endl;
-            }
-            dsEqual(returnMe, evaluate(zeroSourceIndex, maxStoreIndex + 1));
-            if (debug)
-            {
-                Info << "Returned from embedded equation." << endl;
-            }
-            break;
-        case equationOperation::slstorage:
-            if ((zeroSourceIndex + storageOffset) > maxStoreIndex)
-            {
-                FatalErrorIn("equationReader::getSouce")
-                    << "Index " << zeroSourceIndex << " out of bounds (0, "
-                    << maxStoreIndex - storageOffset << ")"
-                    << abort(FatalError);
-            }
-            dsEqual(returnMe, storage_[zeroSourceIndex + storageOffset]);
-            break;
-    }
-    
-    returnMe.value() = sign(eqOp.sourceIndex()) * returnMe.value();
-    return returnMe;
-}
-
-
 Foam::label Foam::equationReader::addInternalScalar(const scalar& value)
 {
     forAll(internalScalars_, i)
@@ -918,10 +746,108 @@ bool Foam::equationReader::isEquation(ITstream& is)
 }
 
 
+void Foam::equationReader::reportOperationDisabled
+(
+    const label& index,
+    const label& i,
+    const dimensionedScalar& ds
+) const
+{
+    // do nothing
+}
+
+
+void Foam::equationReader::reportOperationEnabled
+(
+    const label& index,
+    const label& i,
+    const dimensionedScalar& ds
+) const
+{
+    Info << "Performing operation: ["
+        << equationOperation::opName
+        (
+            eqns_[index].ops()[i].operation()
+        ) << "] using source [";
+    if
+    (
+        eqns_[index].ops()[i].sourceList()
+     == equationOperation::sldictSource
+    )
+    {
+        Info << dictLookups_[eqns_[index].ops()[i].dictLookupIndex()];
+    }
+    else if
+    (
+        eqns_[index].ops()[i].sourceList()
+     == equationOperation::slequation
+    )
+    {
+        Info << eqns_
+            [
+                mag(eqns_[index].ops()[i].sourceIndex() - 1)
+            ].equationName();
+    }
+    else if
+    (
+        eqns_[index].ops()[i].sourceList()
+     == equationOperation::slexternalScalar
+    )
+    {
+        Info << externalScalarNames_
+            [
+                mag(eqns_[index].ops()[i].sourceIndex() - 1)
+            ];
+    }
+    else
+    {
+        Info << ds.name();
+    }
+    Info << "] read from ["
+        << equationOperation::sourceName
+        (
+            eqns_[index].ops()[i].sourceList()
+        ) << "]..." << endl;
+}
+
+
+void Foam::equationReader::reportResultDisabled
+(
+    const dimensionedScalar& ds
+) const
+{
+    // do nothing
+}
+
+
+void Foam::equationReader::reportResultEnabled
+(
+    const dimensionedScalar& ds
+) const
+{
+    Info << "Operaion result is " << ds << endl;
+}
+
+
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 Foam::equationReader::equationReader()
-{}
+{
+    if (debug > 1)
+    {
+        reportOperationFunction_
+            = &Foam::equationReader::reportOperationEnabled;
+        reportResultFunction_
+            = &Foam::equationReader::reportResultEnabled;
+    }
+    else
+    {
+        reportOperationFunction_
+            = &Foam::equationReader::reportOperationDisabled;
+        reportResultFunction_
+            = &Foam::equationReader::reportResultDisabled;
+    }
+}
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
 
@@ -1735,8 +1661,10 @@ dimensioned<scalar>::dimensioned
 }
 */
 
+#include "equationReaderAssignPointerFunctions.C"
 #include "equationReaderCreateMap.C"
 #include "equationReaderEvaluate.C"
+#include "equationReaderGetSource.C"
 #include "equationReaderParse.C"
 
 // ************************************************************************* //

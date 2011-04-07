@@ -32,9 +32,12 @@ Description
 
 SourceFiles
     equationReaderI.H
+    equationReaderPointerFunctions.H
     equationReader.C
+    equationReaderAssignPointerFunctions.C
     equationReaderCreateMap.C
     equationReaderEvaluate.C
+    equationReaderGetSource.C
     equationReaderIO.C
     equationReaderParse.C
     equationReaderTemplates.C
@@ -48,7 +51,7 @@ Author
 #define equationReader_H
 
 #include "dictionary.H"
-#include "dimensionedScalar.H"
+//#include "dimensionedScalar.H"
 #include "UPtrList.H"
 #include "equationList.H"
 #include "tokenList.H"
@@ -80,7 +83,23 @@ class equationReader
         
         //- Equations
         equationList eqns_;
-    
+
+        //- Function pointer (used to avoid a conditional at every operation
+        //  for debug level 2)
+        void (Foam::equationReader::*reportOperationFunction_)
+        (
+            const label&,
+            const label&,
+            const dimensionedScalar&
+        ) const;
+
+        //- Function pointer (used to avoid a conditional at every operation
+        //  for debug level 2)
+        void (Foam::equationReader::*reportResultFunction_)
+        (
+            const dimensionedScalar&
+        ) const;
+
         // Sources - these are locations where variables appearing in the
         // equations can be retrieved
         
@@ -91,7 +110,7 @@ class equationReader
             //  gives indices; this is necessary if the source is a dictionary)
             PtrList<word> dictLookups_;
             
-            //- Pointers to scalarLists, used for lists, fields, etc..
+            //- Pointers to source scalarLists, used for lists, fields, etc..
             UPtrList<const scalarList> externalScalarLists_;
             
             //- Dimensions associated with the externalScalarLists
@@ -125,6 +144,12 @@ class equationReader
             //- Dimensions associated with the output scalars
             PtrList<dimensionSet> outputScalarDimensions_;
 
+            //- Pointers to output scalarLists, used for lists, fields, etc..
+            UPtrList<scalarList> outputScalarLists_;
+            
+            //- Dimensions associated with the outputScalarLists
+            PtrList<dimensionSet> outputScalarListDimensions_;
+            
             //- Temporary storage during evaluation declared a member
             //  variable as a bug fix for dropped references and pointers
             PtrList<dimensionedScalar> storage_;
@@ -284,6 +309,7 @@ class equationReader
 
             //- Return the dimensionedScalar associated with a source list and
             //  source index
+            //  *** Located in equationReaderGetSource.C ***
             dimensionedScalar getSource
             (
                 const label equationIndex,
@@ -304,6 +330,53 @@ class equationReader
 
             //- Returns true if the stream is an equation entry
             bool isEquation(ITstream& is);
+
+
+        // Function-pointer functions, used for efficient evaluation
+        // equationReader uses dynamically linked function pointers for
+        // efficient evaluation and data sourcing.  The prototypes for most of
+        // these functions are located in:
+        // *** equationReaderPointerFunctions.H ***
+#       include "equationReaderPointerFunctions.H"
+
+            //- Link the functions to the pointers
+            //  *** Located in equationReaderAssignFunctionPointers.C ***
+            void assignFunctionPointers(const label index);
+
+            //- Pointed to by reportOperationFunction_ when debug level is not
+            //  high enough - this function does nothing
+            void reportOperationDisabled
+            (
+                const label& index,
+                const label& i,
+                const dimensionedScalar& ds
+            ) const;
+
+            //- Pointed to by reportOperationFunction_ when debug level is
+            //  greater than 1.  This function sends operation-by-operation
+            //  information to the console
+            void reportOperationEnabled
+            (
+                const label& index,
+                const label& i,
+                const dimensionedScalar& ds
+            ) const;
+
+            //- Pointed to by reportResultFunction_ when debug level is not
+            //  high enough - this function does nothing
+            void reportResultDisabled
+            (
+                const dimensionedScalar& ds
+            ) const;
+
+            //- Pointed to by reportResultFunction_ when debug level is not
+            //  high enough - this function reports the result operation-by-
+            //  operation to the console
+            void reportResultEnabled
+            (
+                const dimensionedScalar& ds
+            ) const;
+
 
 
 public:
@@ -447,6 +520,19 @@ public:
             //- Access output scalar dimensions
             inline PtrList<dimensionSet>& outputScalarDimensions();
 
+            //- Const access to pointers to output scalarLists
+            inline const UPtrList<scalarList>& outputScalarLists() const;
+
+            //- Access to pointers to output scalarLists
+            inline UPtrList<scalarList>& outputScalarLists();
+            
+            //- Const access to dimensions associated with outputScalarLists
+            inline const
+                PtrList<dimensionSet>& outputScalarListDimensions() const;
+
+            //- Access to dimensions associated with outputScalarLists
+            inline PtrList<dimensionSet>& outputScalarListDimensions();
+
 
         // Equations
         
@@ -457,137 +543,146 @@ public:
                 equation eqn
             );
 
-            //- Assign or reassign an output variable to an equation - enables
-            //  the use of update()
-            void linkOutput
-            (
-                const word& eqnName,
-                dimensionedScalar& outputDVar
-            );
+            //- linkOutput functions
+            //  These functions assign or reassign an output variable to an
+            //  equation - enables the use of update()
 
-            //- Assign or reassign an output variable to an equation - enables
-            //  the use of update()
-            void linkOutput
-            (
-                const word& eqnName,
-                scalar& value,
-                const word& name,
-                const dimensionSet& dimensions = dimless
-            );
+                //- Given equation name, and a dimensionedScalar
+                void linkOutput
+                (
+                    const word& eqnName,
+                    dimensionedScalar& outputDVar
+                );
 
-            //- Assign or reassign an output variable to an equation - enables
-            //  the use of update()
-            void linkOutput
-            (
-                label index,
-                dimensionedScalar& outputDVar
-            );
-            
-            //- Assign or reassign an output variable to an equation - enables
-            //  the use of update()
-            void linkOutput
-            (
-                label index,
-                scalar& value,
-                const word& name,
-                const dimensionSet& dimensions = dimless
-            );
+                //- Given equation name, and dimensionedScalar components
+                void linkOutput
+                (
+                    const word& eqnName,
+                    scalar& value,
+                    const word& name,
+                    const dimensionSet& dimensions = dimless
+                );
 
-            //- Read equation - if equation exists, it assumes this is a reread
-            void readEquation
-            (
-                equation eqn
-            );
+                //- Given an equation name, and a dimensionedField
+                //  *** Located in equationReaderTemplates ***
+                template<class GeoMesh>
+                void linkOutput
+                (
+                    const word& eqnName,
+                    DimensionedField<scalar, GeoMesh>& dfield
+                );
 
-            //- Read equation - if equation exists, it assumes this is a reread
-            //  Also performs a linkOutput() to the given output variable
-            void readEquation
-            (
-                equation eqn,
-                dimensionedScalar& outputDVar
-            );
+                //- Given an equation name, and scalarList components
+                void linkOutput
+                (
+                    const word& eqnName,
+                    scalarList& outputSList,
+                    const dimensionSet& dimensions
+                );
 
-            //- Read equation - if equation exists, it assumes this is a reread
-            //  Also performs a linkOutput() to the given output variable
-            void readEquation
-            (
-                equation eqn,
-                scalar& value,
-                const word& name,
-                const dimensionSet& dimensions = dimless
-            );
+                //- Given the equation index, and dimensionedScalar
+                void linkOutput
+                (
+                    label index,
+                    dimensionedScalar& outputDVar
+                );
+                
+                //- Given the equation index, and dimensionedScalar components
+                void linkOutput
+                (
+                    label index,
+                    scalar& value,
+                    const word& name,
+                    const dimensionSet& dimensions = dimless
+                );
 
-            //- Read equation from a dictionary - if equation exists, it
-            //  assumes this is a reread.
-            void readEquation
-            (
-                const dictionary& sourceDict,
-                const word& eqnName
-            );
+                //- Given the equation index, and DimensionedField
+                //  *** Located in equationReaderTemplates.C ***
+                template<class GeoMesh>
+                void linkOutput
+                (
+                    label index,
+                    DimensionedField<scalar, GeoMesh>& dfield
+                );
 
-            //- Read equation from a dictionary - if equation exists, it
-            //  assumes this is a reread.
-            //  Also performs a linkOutput() to the given output variable
-            void readEquation
-            (
-                const dictionary& sourceDict,
-                const word& eqnName,
-                dimensionedScalar& outputDVar
-            );
+                //- Given the equation index, and scalarList components
+                void linkOutput
+                (
+                    label index,
+                    scalarList& outputSList,
+                    const dimensionSet& dimensions
+                );
 
-            //- Read equation from a dictionary - if equation exists, it
-            //  assumes this is a reread.
-            //  Also performs a linkOutput() to the given output variable
-            void readEquation
-            (
-                const dictionary& sourceDict,
-                const word& eqnName,
-                scalar& value,
-                const word& name,
-                const dimensionSet& dimensions = dimless
-            );
+            //- readEquation functions - if equation exists, it assumes this is
+            //  a reread.  If parameters include output variables, this
+            //  function will also perform a linkOutput
 
-/*
-            //- Create, read and parse an equation, if a duplicate is found, it
-            //  assumes this is a reread.  Given components.  If outputVar is 
-            //  omitted, you cannot use 'update' for this equation.
-            void readEquation
-            (
-                const dictionary& sourceDict,
-                const word& eqnName,
-                dimensionedScalar * outputDVar = NULL
-            );
+                //- Given an equation
+                void readEquation
+                (
+                    equation eqn
+                );
 
-            //- Create, read and parse an equation, if a duplicate is found, it
-            //  assumes this is a reread.  Given components.  If outputVar is 
-            //  omitted, you cannot use 'update' for this equation.
-            void readEquation
-            (
-                const dictionary& sourceDict,
-                const word& eqnName,
-                scalar * outputVar,
-                const word& outputName,
-                const dimensionSet& outputDimensions
-            );
+                //- Given an equation and linkOutput to a dimensionedScalar
+                void readEquation
+                (
+                    equation eqn,
+                    dimensionedScalar& outputDVar
+                );
 
-            //- Read, parse and evaluate an equation, if a duplicate is found,
-            //  it assumes this is a reread.  Given equation.
-            void readEquation
-            (
-                equation eqn,
-                dimensionedScalar * outputDVar = NULL
-            );
+                //- Given an equation and linkOutput to a dimensionedScalar's
+                //  components
+                void readEquation
+                (
+                    equation eqn,
+                    scalar& value,
+                    const word& name,
+                    const dimensionSet& dimensions = dimless
+                );
+                
+                //- Given an equation and linkOutput to a DimensionedField
+                //  *** Located in equationReaderTemplates.C ***
+                template<class GeoMesh>
+                void readEquation
+                (
+                    equation eqn,
+                    DimensionedField<scalar, GeoMesh>& dfield
+                );
 
-            //- Read, parse and evaluate an equation, if a duplicate is found,
-            //  it assumes this is a reread.  Given equation.
-            void readEquation
-            (
-                equation eqn,
-                scalar * outputVar,
-                const word& outputName,
-                const dimensionSet& outputDimensions
-            );
-*/
+                //- Given an equation and linkOutput to a DimensionedField
+                void readEquation
+                (
+                    equation eqn,
+                    scalarList& outputSList,
+                    const dimensionSet& dimensions
+                );
+
+                //- Read equation from a dictionary
+                void readEquation
+                (
+                    const dictionary& sourceDict,
+                    const word& eqnName
+                );
+
+                //- Read equation from a dictionary and linkOutput to a
+                //  dimensionedScalar
+                void readEquation
+                (
+                    const dictionary& sourceDict,
+                    const word& eqnName,
+                    dimensionedScalar& outputDVar
+                );
+
+                //- Read equation from a dictionary and linkOutput to a
+                //  dimensionedScalar's components
+                void readEquation
+                (
+                    const dictionary& sourceDict,
+                    const word& eqnName,
+                    scalar& value,
+                    const word& name,
+                    const dimensionSet& dimensions = dimless
+                );
 
             //- Evaluate a single equation, given a variable name, and return
             //  new value.  Do not set the associated output variable
@@ -602,6 +697,28 @@ public:
             (
                 const label& index,
                 label storageOffset = 0
+            );
+            
+            //- Evaluate the equation and output the result as a Field, cycling
+            //  through all the source field indices (setFieldIndex)
+            //  Given an index and DimensionedField
+            //  *** Located in equationReaderTemplates.C ***
+            template<class GeoMesh>
+            void evaluateField
+            (
+                const label& index,
+                DimensionedField<scalar, GeoMesh>& dfield
+            );
+            
+            //- Evaluate the equation and output the result as a scalarList,
+            //  cycling through all the source field indices (setFieldIndex)
+            //  Given an index and scalarList components
+            //  *** Located in equationReaderEvaluate.C ***
+            void evaluateField
+            (
+                const label& index,
+                scalarList& outputSList,
+                dimensionSet& dimensions
             );
 
             //- Evaluate a single equation, given a variable name, and set the
