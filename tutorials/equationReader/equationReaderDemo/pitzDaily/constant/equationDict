@@ -146,7 +146,7 @@ dvfOut.y    [0 0 0 0 0 0 0] "   max \
                                         C.z \
                                     ) \
                                 )";
-dvfOut.z    "1 + 2 * pow(3, pow(2, pow((2*3*4/7*(8+4)), 3)))";
+dvfOut.z    "1 + 2 * pow(3, pow(2, pow((2*3*4/(7*(8+4))), 3)))";
 
 // You get the idea.
 
