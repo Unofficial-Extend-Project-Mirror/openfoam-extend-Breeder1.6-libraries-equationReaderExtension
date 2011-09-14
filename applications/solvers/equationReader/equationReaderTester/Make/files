@@ -1,3 +1,0 @@
-equationReaderTester.C
-
-EXE = $(FOAM_USER_APPBIN)/equationReaderTester

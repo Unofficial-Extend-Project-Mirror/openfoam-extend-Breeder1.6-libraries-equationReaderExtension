@@ -1,0 +1,52 @@
+/*---------------------------------------------------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM Extend Project: Open source CFD        |
+|  \\    /   O peration     | Version:  1.6-ext                               |
+|   \\  /    A nd           | Web:      www.extend-project.de                 |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+Build  : 1.6-ext-ac86358947e4
+Exec   : equationReaderDemo
+Date   : Sep 13 2011
+Time   : 20:14:47
+Host   : Bruce
+PID    : 10239
+Case   : /home/dave/OpenFOAM/git/OpenFOAM/dave-1.6-ext/run/tutorials/equationReaderDemo/pitzDaily
+nProcs : 1
+SigFpe : Enabling floating point exception trapping (FOAM_SIGFPE).
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+Create time
+
+Create mesh for time = 0
+
+Reading field p
+
+Reading field U
+
+Reading/calculating face flux field phi
+
+Selecting incompressible transport model Newtonian
+Selecting RAS turbulence model kEpsilon
+kEpsilonCoeffs
+{
+    Cmu             0.09;
+    C1              1.44;
+    C2              1.92;
+    alphaEps        0.76923;
+    sigmaEps        1.3;
+}
+
+Create equationReader
+
+
+Starting time loop
+
+Time = 1
+
+DILUPBiCG:  Solving for Ux, Initial residual = 1, Final residual = 0.0487822049455, No Iterations 1
+DILUPBiCG:  Solving for Uy, Initial residual = 1, Final residual = 0.0281478766737, No Iterations 1
+DICPCG:  Solving for p, Initial residual = 1, Final residual = 0.0091411218847, No Iterations 163
+time step continuity errors : sum local = 0.479518503171, global = -0.00453445182714, cumulative = -0.00453445182714
+DILUPBiCG:  Solving for epsilon, Initial residual = 0.1865417273, Final residual = 0.0142794346565, No Iterations 1
+DILUPBiCG:  Solving for k, Initial residual = 1, Final residual = 0.0606748960487, No Iterations 1
