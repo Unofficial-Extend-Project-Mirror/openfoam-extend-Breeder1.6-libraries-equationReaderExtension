@@ -1,1 +1,0 @@
-../equationReaderTime/equationReaderTime.C
