@@ -10,6 +10,5 @@ EXE_LIBS = \
     -lincompressibleRASModels \
     -lincompressibleTransportModels \
     -lfiniteVolume \
-    -llduSolvers \
     -lequationReader
 
