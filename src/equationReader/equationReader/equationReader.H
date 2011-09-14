@@ -92,6 +92,7 @@ Author
 #include "equationSource.H"
 #include "equationVariable.H"
 #include "dictionary.H"
+#include "diagTensor.H"
 //#include "dimensionedScalar.H"
 #include "UPtrList.H"
 //#include "equationList.H"

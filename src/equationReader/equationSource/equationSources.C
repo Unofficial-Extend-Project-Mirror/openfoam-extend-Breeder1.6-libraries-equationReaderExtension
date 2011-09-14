@@ -25,6 +25,7 @@ License
 \*---------------------------------------------------------------------------*/
 
 #include "equationSource.H"
+#include "diagTensor.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
