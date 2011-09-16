@@ -3,7 +3,7 @@
 
 #ifdef ThisIsFoamVersion2
 #   ifndef MathConstantScope
-#      define MathConstantScope constants::mathematical
+#      define MathConstantScope constant::mathematical
 #   endif
 #else
 #   ifndef MathConstantScope
