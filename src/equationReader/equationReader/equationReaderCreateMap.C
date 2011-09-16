@@ -161,23 +161,26 @@ void Foam::equationReader::createMap
                 label internalIndex(0);
                 if (tl[i].wordToken() == "e_")
                 {
+                    // MathConstantScope is a hack that allows equationReader
+                    // to work in multiple versions of OpenFOAM.  See
+                    // include/versionSpecific.H
                     internalIndex =
-                        addInternalScalar(mathematicalConstant::e) + 1;
+                        addInternalScalar(MathConstantScope::e) + 1;
                 }
                 else if (tl[i].wordToken() == "pi_")
                 {
                     internalIndex =
-                        addInternalScalar(mathematicalConstant::pi) + 1;
+                        addInternalScalar(MathConstantScope::pi) + 1;
                 }
                 else if (tl[i].wordToken() == "twoPi_")
                 {
                     internalIndex =
-                        addInternalScalar(mathematicalConstant::twoPi) + 1;
+                        addInternalScalar(MathConstantScope::twoPi) + 1;
                 }
                 else if (tl[i].wordToken() == "piByTwo_")
                 {
                     internalIndex =
-                        addInternalScalar(mathematicalConstant::piByTwo) + 1;
+                        addInternalScalar(MathConstantScope::piByTwo) + 1;
                 }
                 else if (tl[i].wordToken() == "GREAT_")
                 {

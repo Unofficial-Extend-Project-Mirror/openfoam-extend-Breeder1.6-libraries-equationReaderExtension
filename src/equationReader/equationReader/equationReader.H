@@ -89,6 +89,7 @@ Author
 #ifndef equationReader_H
 #define equationReader_H
 
+#include "versionSpecific.H"
 #include "equationSource.H"
 #include "equationVariable.H"
 #include "dictionary.H"
