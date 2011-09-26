@@ -1306,6 +1306,16 @@ Foam::equationReader::equationReader()
         word("sphericalTensor")
     )
 {
+    Info
+        << "/*                       |---------------------." << token::NL
+        << " * This application uses | David L. F. Gaden's |  "
+        << "Please cite me if possible" << token::NL
+        << " *      .----------------|---------------------'  "
+        << "See the README for more info" << token::NL
+        << " *      | equationReader |  Version:    " << version()
+        << token::NL
+        << " *      '----------------|" << token::NL
+        << " */" << endl;
     if (debug)
     {
         reportEmbeddedDispatchFunction_
@@ -1385,6 +1395,18 @@ Foam::equationReader::~equationReader()
 
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
+
+Foam::word Foam::equationReader::version() const
+{
+    OStringStream os;
+    os << label(equationReaderVersionMajor) << "."
+        << label(equationReaderVersionMinor) << "."
+        << label(equationReaderVersionBuild);
+
+    return word(os.str());
+}
+
+
 
 bool Foam::equationReader::found(const word& equationName)
 {
@@ -1543,8 +1565,10 @@ Foam::label Foam::equationReader::size() const
 #include "equationReaderDebugP.C"
 #include "equationReaderEvalDimsP.C"
 #include "equationReaderEvalScalarP.C"
+#include "equationReaderEvalScalarFieldP.C"
 #include "equationReaderGetSourceDimsP.C"
 #include "equationReaderGetSourceScalarP.C"
+#include "equationReaderGetSourceScalarFieldP.C"
 // equationReaderIO.C - compile target
 
 // ************************************************************************* //

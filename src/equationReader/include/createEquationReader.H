@@ -2,8 +2,6 @@
 // createEquationReader.H
 // ~~~~~~~~~~~~~~~~~~~~~~
 
-    Foam::Info<< "Create equationReader\n" << Foam::endl;
-
     Foam::IOEquationReader eqns
     (
         IOobject

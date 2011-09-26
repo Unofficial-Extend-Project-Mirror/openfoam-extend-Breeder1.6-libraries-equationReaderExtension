@@ -64,9 +64,9 @@ public:
     // Destructor
     virtual ~equationVariable() {}
 
-    virtual word name() const = 0;
+    virtual const word& name() const = 0;
     
-    virtual dimensionSet dimensions() const = 0;
+    virtual const dimensionSet& dimensions() const = 0;
     
     virtual label lookupComponentIndex(const word) const = 0;
     
@@ -74,6 +74,13 @@ public:
     (
         const label componentIndex,
         const label cellIndex,
+        const label geoIndex
+    ) const = 0;
+
+    virtual scalar evaluateScalarField
+    (
+        scalarField& result,
+        const label componentIndex,
         const label geoIndex
     ) const = 0;
 };

@@ -81,11 +81,17 @@ void Foam::equationReader::evaluateTypeField
     const label geoIndex
 ) const
 {
-    forAll(resultField, cellIndex)
-    {
-        resultField[cellIndex][componentIndex] =
-            evaluateScalar(equationIndex, cellIndex, geoIndex);
-    }
+    scalarField sf(resultField.size());
+    evaluateScalarField(sf, equationIndex, geoIndex);
+
+    List_ACCESS(Type, resultField, resultFieldP);
+    List_CONST_ACCESS(scalar, sf, sfP);
+
+    /* loop through fields performing f1 OP1 f2 OP2 f3 */
+    List_FOR_ALL(resultField, i)
+        List_ELEM(resultField, resultFieldP, i)[componentIndex] =
+            List_ELEM(sf, sfP, i);
+    List_END_FOR_ALL
 }
 
 
@@ -116,17 +122,13 @@ void Foam::equationReader::evaluateDimensionedScalarField
     const label geoIndex
 ) const
 {
-    forAll(resultDField.field(), cellIndex)
-    {
-        resultDField.field()[cellIndex] =
-            evaluateScalar(equationIndex, cellIndex, geoIndex);
-        checkFinalDimensions
-        (
-            equationIndex,
-            resultDField.dimensions(),
-            resultDField.name()
-        );
-    }
+    evaluateScalarField(resultDField.field(), equationIndex, geoIndex);
+    checkFinalDimensions
+    (
+        equationIndex,
+        resultDField.dimensions(),
+        resultDField.name()
+    );
 }
 
 
@@ -191,17 +193,19 @@ void Foam::equationReader::evaluateDimensionedTypeField
     const label geoIndex
 ) const
 {
-    forAll(resultDField.field(), cellIndex)
-    {
-        resultDField.field()[cellIndex][componentIndex] =
-            evaluateScalar(equationIndex, cellIndex, geoIndex);
-        checkFinalDimensions
-        (
-            equationIndex,
-            resultDField.dimensions(),
-            resultDField.name() + "." + Type::componentNames[componentIndex]
-        );
-    }
+    evaluateTypeField
+    (
+        resultDField.field(),
+        componentIndex,
+        equationIndex,
+        geoIndex
+    );
+    checkFinalDimensions
+    (
+        equationIndex,
+        resultDField.dimensions(),
+        resultDField.name() + "." + Type::componentNames[componentIndex]
+    );
 }
 
 
@@ -231,24 +235,21 @@ void Foam::equationReader::evaluateGeometricScalarField
 ) const
 {
     // Internal field: geoIndex = 0
-    forAll(resultGField.internalField(), cellIndex)
-    {
-        resultGField.internalField()[cellIndex] =
-            evaluateScalar(equationIndex, cellIndex, 0);
-    }
+    evaluateScalarField
+    (
+        resultGField.internalField(),
+        equationIndex,
+        0
+    );
     // Boundary fields: geoIndex = patchIndex + 1
     forAll(resultGField.boundaryField(), patchIndex)
     {
-        forAll(resultGField.boundaryField()[patchIndex], cellIndex)
-        {
-            resultGField.boundaryField()[patchIndex][cellIndex] =
-                evaluateScalar
-                (
-                    equationIndex,
-                    cellIndex,
-                    patchIndex + 1
-                );
-        }
+        evaluateScalarField
+        (
+            resultGField.boundaryField()[patchIndex],
+            equationIndex,
+            patchIndex + 1
+        );
     }
     checkFinalDimensions
     (
@@ -318,27 +319,24 @@ void Foam::equationReader::evaluateGeometricTypeField
 ) const
 {
     // Internal field: geoIndex = 0
-    forAll(resultGField.internalField(), cellIndex)
-    {
-        resultGField.internalField()[cellIndex][componentIndex] =
-            evaluateScalar(equationIndex, cellIndex, 0);
-    }
+    evaluateTypeField
+    (
+        resultGField.internalField(),
+        componentIndex,
+        equationIndex,
+        0
+    );
+
     // Boundary fields: geoIndex = patchIndex + 1
     forAll(resultGField.boundaryField(), patchIndex)
     {
-        forAll(resultGField.boundaryField()[patchIndex], cellIndex)
-        {
-            resultGField.boundaryField()
-                [patchIndex]
-                [cellIndex]
-                [componentIndex]
-              = evaluateScalar
-                (
-                    equationIndex,
-                    cellIndex,
-                    patchIndex + 1
-                );
-        }
+        evaluateTypeField
+        (
+            resultGField.boundaryField()[patchIndex],
+            componentIndex,
+            equationIndex,
+            patchIndex + 1
+        );
     }
     checkFinalDimensions
     (

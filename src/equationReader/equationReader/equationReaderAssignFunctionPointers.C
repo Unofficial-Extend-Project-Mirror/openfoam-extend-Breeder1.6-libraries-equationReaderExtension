@@ -46,6 +46,10 @@ void Foam::equationReader::assignFunctionPointers(const label index) const
                 (
                     &Foam::equationReader::getScalarSrcNone
                 );
+                eqOp.assignSourceScalarFieldFunction
+                (
+                    &Foam::equationReader::getScalarFieldSrcNone
+                );
                 break;
             case equationOperation::ststorage:
                 if (eqOp.operation() == equationOperation::otstore)
@@ -58,6 +62,10 @@ void Foam::equationReader::assignFunctionPointers(const label index) const
                     (
                         &Foam::equationReader::getScalarSrcNone
                     );
+                    eqOp.assignSourceScalarFieldFunction
+                    (
+                        &Foam::equationReader::getScalarFieldSrcNone
+                    );
                 }
                 else
                 {
@@ -69,6 +77,10 @@ void Foam::equationReader::assignFunctionPointers(const label index) const
                     (
                         &Foam::equationReader::getScalarSrcStorage
                     );
+                    eqOp.assignSourceScalarFieldFunction
+                    (
+                        &Foam::equationReader::getScalarFieldSrcStorage
+                    );
                 }
                 break;
             case equationOperation::stactiveSource:
@@ -79,6 +91,10 @@ void Foam::equationReader::assignFunctionPointers(const label index) const
                 eqOp.assignSourceScalarFunction
                 (
                     &Foam::equationReader::getScalarSrcActiveSource
+                );
+                eqOp.assignSourceScalarFieldFunction
+                (
+                    &Foam::equationReader::getScalarFieldSrcActiveSource
                 );
             case equationOperation::stequation:
                 if  (zeroSourceIndex >= size())
@@ -96,6 +112,11 @@ void Foam::equationReader::assignFunctionPointers(const label index) const
                 (
                     &Foam::equationReader::getScalarSrcEquationCircRefDetect
                 );
+                eqOp.assignSourceScalarFieldFunction
+                (
+                    &Foam::equationReader
+                        ::getScalarFieldSrcEquationCircRefDetect
+                );
                 break;
             case equationOperation::stinternalScalar:
                 if (zeroSourceIndex >= internalScalars_.size())
@@ -112,6 +133,10 @@ void Foam::equationReader::assignFunctionPointers(const label index) const
                 eqOp.assignSourceScalarFunction
                 (
                     &Foam::equationReader::getScalarSrcInternalScalar
+                );
+                eqOp.assignSourceScalarFieldFunction
+                (
+                    &Foam::equationReader::getScalarFieldSrcInternalScalar
                 );
                 break;
             case equationOperation::stdictSource:
@@ -140,6 +165,11 @@ void Foam::equationReader::assignFunctionPointers(const label index) const
                     (
                         &Foam::equationReader::getScalarSrcDictSourceDScalar
                     );
+                    eqOp.assignSourceScalarFieldFunction
+                    (
+                        &Foam::equationReader
+                            ::getScalarFieldSrcDictSourceDScalar
+                    );
                 }
                 else if (isScalar(srcStrm))
                 {
@@ -150,6 +180,11 @@ void Foam::equationReader::assignFunctionPointers(const label index) const
                     eqOp.assignSourceScalarFunction
                     (
                         &Foam::equationReader::getScalarSrcDictSourceScalar
+                    );
+                    eqOp.assignSourceScalarFieldFunction
+                    (
+                        &Foam::equationReader
+                            ::getScalarFieldSrcDictSourceScalar
                     );
                 }
                 else
@@ -184,6 +219,10 @@ void Foam::equationReader::assignFunctionPointers(const label index) const
                 (
                     &Foam::equationReader::getScalarSrcScalarSource
                 );
+                eqOp.assignSourceScalarFieldFunction
+                (
+                    &Foam::equationReader::getScalarFieldSrcScalarSource
+                );
                 break;
             case equationOperation::stscalarFieldSource:
                 if (zeroSourceIndex >= scalarSources_.nFields())
@@ -200,6 +239,10 @@ void Foam::equationReader::assignFunctionPointers(const label index) const
                 eqOp.assignSourceScalarFunction
                 (
                     &Foam::equationReader::getScalarSrcScalarFieldSource
+                );
+                eqOp.assignSourceScalarFieldFunction
+                (
+                    &Foam::equationReader::getScalarFieldSrcScalarFieldSource
                 );
                 break;
             case equationOperation::stvectorSource:
@@ -218,6 +261,10 @@ void Foam::equationReader::assignFunctionPointers(const label index) const
                 (
                     &Foam::equationReader::getScalarSrcVectorSource
                 );
+                eqOp.assignSourceScalarFieldFunction
+                (
+                    &Foam::equationReader::getScalarFieldSrcVectorSource
+                );
                 break;
             case equationOperation::stvectorFieldSource:
                 if (zeroSourceIndex >= vectorSources_.nFields())
@@ -234,6 +281,10 @@ void Foam::equationReader::assignFunctionPointers(const label index) const
                 eqOp.assignSourceScalarFunction
                 (
                     &Foam::equationReader::getScalarSrcVectorFieldSource
+                );
+                eqOp.assignSourceScalarFieldFunction
+                (
+                    &Foam::equationReader::getScalarFieldSrcVectorFieldSource
                 );
                 break;
             case equationOperation::sttensorSource:
@@ -252,6 +303,10 @@ void Foam::equationReader::assignFunctionPointers(const label index) const
                 (
                     &Foam::equationReader::getScalarSrcTensorSource
                 );
+                eqOp.assignSourceScalarFieldFunction
+                (
+                    &Foam::equationReader::getScalarFieldSrcTensorSource
+                );
                 break;
             case equationOperation::sttensorFieldSource:
                 if (zeroSourceIndex >= tensorSources_.nFields())
@@ -268,6 +323,10 @@ void Foam::equationReader::assignFunctionPointers(const label index) const
                 eqOp.assignSourceScalarFunction
                 (
                     &Foam::equationReader::getScalarSrcTensorFieldSource
+                );
+                eqOp.assignSourceScalarFieldFunction
+                (
+                    &Foam::equationReader::getScalarFieldSrcTensorFieldSource
                 );
                 break;
             case equationOperation::stdiagTensorSource:
@@ -286,6 +345,10 @@ void Foam::equationReader::assignFunctionPointers(const label index) const
                 (
                     &Foam::equationReader::getScalarSrcDiagTensorSource
                 );
+                eqOp.assignSourceScalarFieldFunction
+                (
+                    &Foam::equationReader::getScalarFieldSrcDiagTensorSource
+                );
                 break;
             case equationOperation::stdiagTensorFieldSource:
                 if (zeroSourceIndex >= diagTensorSources_.nFields())
@@ -302,6 +365,11 @@ void Foam::equationReader::assignFunctionPointers(const label index) const
                 eqOp.assignSourceScalarFunction
                 (
                     &Foam::equationReader::getScalarSrcDiagTensorFieldSource
+                );
+                eqOp.assignSourceScalarFieldFunction
+                (
+                    &Foam::equationReader
+                        ::getScalarFieldSrcDiagTensorFieldSource
                 );
                 break;
             case equationOperation::stsymmTensorSource:
@@ -320,6 +388,10 @@ void Foam::equationReader::assignFunctionPointers(const label index) const
                 (
                     &Foam::equationReader::getScalarSrcSymmTensorSource
                 );
+                eqOp.assignSourceScalarFieldFunction
+                (
+                    &Foam::equationReader::getScalarFieldSrcSymmTensorSource
+                );
                 break;
             case equationOperation::stsymmTensorFieldSource:
                 if (zeroSourceIndex >= symmTensorSources_.nFields())
@@ -336,6 +408,11 @@ void Foam::equationReader::assignFunctionPointers(const label index) const
                 eqOp.assignSourceScalarFunction
                 (
                     &Foam::equationReader::getScalarSrcSymmTensorFieldSource
+                );
+                eqOp.assignSourceScalarFieldFunction
+                (
+                    &Foam::equationReader
+                        ::getScalarFieldSrcSymmTensorFieldSource
                 );
                 break;
             case equationOperation::stsphericalTensorSource:
@@ -354,6 +431,11 @@ void Foam::equationReader::assignFunctionPointers(const label index) const
                 (
                     &Foam::equationReader::getScalarSrcSphericalTensorSource
                 );
+                eqOp.assignSourceScalarFieldFunction
+                (
+                    &Foam::equationReader
+                        ::getScalarFieldSrcSphericalTensorSource
+                );
                 break;
             case equationOperation::stsphericalTensorFieldSource:
                 if (zeroSourceIndex >= sphericalTensorSources_.nFields())
@@ -365,11 +447,18 @@ void Foam::equationReader::assignFunctionPointers(const label index) const
                 }
                 eqOp.assignSourceDimsFunction
                 (
-                    &Foam::equationReader::getDimsSrcSphericalTensorFieldSource
+                    &Foam::equationReader
+                        ::getDimsSrcSphericalTensorFieldSource
                 );
                 eqOp.assignSourceScalarFunction
                 (
-                    &Foam::equationReader::getScalarSrcSphericalTensorFieldSource
+                    &Foam::equationReader
+                        ::getScalarSrcSphericalTensorFieldSource
+                );
+                eqOp.assignSourceScalarFieldFunction
+                (
+                    &Foam::equationReader
+                        ::getScalarFieldSrcSphericalTensorFieldSource
                 );
                 break;
         }
@@ -378,6 +467,10 @@ void Foam::equationReader::assignFunctionPointers(const label index) const
         switch (eqOp.operation())
         {
             case equationOperation::otnone:
+                eqOp.assignOpScalarFieldFunction
+                (
+                    &Foam::equationReader::evalScalarFieldNone
+                );
                 eqOp.assignOpScalarFunction
                 (
                     &Foam::equationReader::evalScalarNone
@@ -388,6 +481,10 @@ void Foam::equationReader::assignFunctionPointers(const label index) const
                 );
                 break;
             case equationOperation::otretrieve:
+                 eqOp.assignOpScalarFieldFunction
+                (
+                    &Foam::equationReader::evalScalarFieldRetrieve
+                );
                  eqOp.assignOpScalarFunction
                 (
                     &Foam::equationReader::evalScalarRetrieve
@@ -398,6 +495,10 @@ void Foam::equationReader::assignFunctionPointers(const label index) const
                 );
                 break;
             case equationOperation::otstore:
+                eqOp.assignOpScalarFieldFunction
+                (
+                    &Foam::equationReader::evalScalarFieldStore
+                );
                 eqOp.assignOpScalarFunction
                 (
                     &Foam::equationReader::evalScalarStore
@@ -408,6 +509,10 @@ void Foam::equationReader::assignFunctionPointers(const label index) const
                 );
                 break;
             case equationOperation::otplus:
+                eqOp.assignOpScalarFieldFunction
+                (
+                    &Foam::equationReader::evalScalarFieldPlus
+                );
                 eqOp.assignOpScalarFunction
                 (
                     &Foam::equationReader::evalScalarPlus
@@ -418,6 +523,10 @@ void Foam::equationReader::assignFunctionPointers(const label index) const
                 );
                 break;
             case equationOperation::otminus:
+                eqOp.assignOpScalarFieldFunction
+                (
+                    &Foam::equationReader::evalScalarFieldMinus
+                );
                 eqOp.assignOpScalarFunction
                 (
                     &Foam::equationReader::evalScalarMinus
@@ -428,6 +537,10 @@ void Foam::equationReader::assignFunctionPointers(const label index) const
                 );
                 break;
             case equationOperation::ottimes:
+                eqOp.assignOpScalarFieldFunction
+                (
+                    &Foam::equationReader::evalScalarFieldTimes
+                );
                 eqOp.assignOpScalarFunction
                 (
                     &Foam::equationReader::evalScalarTimes
@@ -438,6 +551,10 @@ void Foam::equationReader::assignFunctionPointers(const label index) const
                 );
                 break;
             case equationOperation::otdivide:
+                eqOp.assignOpScalarFieldFunction
+                (
+                    &Foam::equationReader::evalScalarFieldDivide
+                );
                 eqOp.assignOpScalarFunction
                 (
                     &Foam::equationReader::evalScalarDivide
@@ -448,6 +565,10 @@ void Foam::equationReader::assignFunctionPointers(const label index) const
                 );
                 break;
             case equationOperation::otpow:
+                eqOp.assignOpScalarFieldFunction
+                (
+                    &Foam::equationReader::evalScalarFieldPow
+                );
                 eqOp.assignOpScalarFunction
                 (
                     &Foam::equationReader::evalScalarPow
@@ -473,6 +594,10 @@ void Foam::equationReader::assignFunctionPointers(const label index) const
                         << "] takes only one parameter."
                         << abort(FatalError);
                 }
+                eqOp.assignOpScalarFieldFunction
+                (
+                    &Foam::equationReader::evalScalarFieldSign
+                );
                 eqOp.assignOpScalarFunction
                 (
                     &Foam::equationReader::evalScalarSign
@@ -498,6 +623,10 @@ void Foam::equationReader::assignFunctionPointers(const label index) const
                         << "] takes only one parameter."
                         << abort(FatalError);
                 }
+                eqOp.assignOpScalarFieldFunction
+                (
+                    &Foam::equationReader::evalScalarFieldPos
+                );
                 eqOp.assignOpScalarFunction
                 (
                     &Foam::equationReader::evalScalarPos
@@ -523,6 +652,10 @@ void Foam::equationReader::assignFunctionPointers(const label index) const
                         << "] takes only one parameter."
                         << abort(FatalError);
                 }
+                eqOp.assignOpScalarFieldFunction
+                (
+                    &Foam::equationReader::evalScalarFieldNeg
+                );
                 eqOp.assignOpScalarFunction
                 (
                     &Foam::equationReader::evalScalarNeg
@@ -548,6 +681,10 @@ void Foam::equationReader::assignFunctionPointers(const label index) const
                         << "] takes only one parameter."
                         << abort(FatalError);
                 }
+                eqOp.assignOpScalarFieldFunction
+                (
+                    &Foam::equationReader::evalScalarFieldMag
+                );
                 eqOp.assignOpScalarFunction
                 (
                     &Foam::equationReader::evalScalarMag
@@ -573,6 +710,10 @@ void Foam::equationReader::assignFunctionPointers(const label index) const
                         << "] requires two parameters."
                         << abort(FatalError);
                 }
+                eqOp.assignOpScalarFieldFunction
+                (
+                    &Foam::equationReader::evalScalarFieldLimit
+                );
                 eqOp.assignOpScalarFunction
                 (
                     &Foam::equationReader::evalScalarLimit
@@ -598,6 +739,10 @@ void Foam::equationReader::assignFunctionPointers(const label index) const
                         << "] requires two parameters."
                         << abort(FatalError);
                 }
+                eqOp.assignOpScalarFieldFunction
+                (
+                    &Foam::equationReader::evalScalarFieldMinMod
+                );
                 eqOp.assignOpScalarFunction
                 (
                     &Foam::equationReader::evalScalarMinMod
@@ -623,6 +768,10 @@ void Foam::equationReader::assignFunctionPointers(const label index) const
                         << "] requires two parameters."
                         << abort(FatalError);
                 }
+                eqOp.assignOpScalarFieldFunction
+                (
+                    &Foam::equationReader::evalScalarFieldSqrtSumSqr
+                );
                 eqOp.assignOpScalarFunction
                 (
                     &Foam::equationReader::evalScalarSqrtSumSqr
@@ -648,6 +797,10 @@ void Foam::equationReader::assignFunctionPointers(const label index) const
                         << "] takes only one parameter."
                         << abort(FatalError);
                 }
+                eqOp.assignOpScalarFieldFunction
+                (
+                    &Foam::equationReader::evalScalarFieldSqr
+                );
                 eqOp.assignOpScalarFunction
                 (
                     &Foam::equationReader::evalScalarSqr
@@ -673,6 +826,10 @@ void Foam::equationReader::assignFunctionPointers(const label index) const
                         << "] takes only one parameter."
                         << abort(FatalError);
                 }
+                eqOp.assignOpScalarFieldFunction
+                (
+                    &Foam::equationReader::evalScalarFieldPow3
+                );
                 eqOp.assignOpScalarFunction
                 (
                     &Foam::equationReader::evalScalarPow3
@@ -698,6 +855,10 @@ void Foam::equationReader::assignFunctionPointers(const label index) const
                         << "] takes only one parameter."
                         << abort(FatalError);
                 }
+                eqOp.assignOpScalarFieldFunction
+                (
+                    &Foam::equationReader::evalScalarFieldPow4
+                );
                 eqOp.assignOpScalarFunction
                 (
                     &Foam::equationReader::evalScalarPow4
@@ -723,6 +884,10 @@ void Foam::equationReader::assignFunctionPointers(const label index) const
                         << "] takes only one parameter."
                         << abort(FatalError);
                 }
+                eqOp.assignOpScalarFieldFunction
+                (
+                    &Foam::equationReader::evalScalarFieldPow5
+                );
                 eqOp.assignOpScalarFunction
                 (
                     &Foam::equationReader::evalScalarPow5
@@ -748,6 +913,10 @@ void Foam::equationReader::assignFunctionPointers(const label index) const
                         << "] takes only one parameter."
                         << abort(FatalError);
                 }
+                eqOp.assignOpScalarFieldFunction
+                (
+                    &Foam::equationReader::evalScalarFieldPow6
+                );
                 eqOp.assignOpScalarFunction
                 (
                     &Foam::equationReader::evalScalarPow6
@@ -773,6 +942,10 @@ void Foam::equationReader::assignFunctionPointers(const label index) const
                         << "] takes only one parameter."
                         << abort(FatalError);
                 }
+                eqOp.assignOpScalarFieldFunction
+                (
+                    &Foam::equationReader::evalScalarFieldInv
+                );
                 eqOp.assignOpScalarFunction
                 (
                     &Foam::equationReader::evalScalarInv
@@ -798,6 +971,10 @@ void Foam::equationReader::assignFunctionPointers(const label index) const
                         << "] takes only one parameter."
                         << abort(FatalError);
                 }
+                eqOp.assignOpScalarFieldFunction
+                (
+                    &Foam::equationReader::evalScalarFieldSqrt
+                );
                 eqOp.assignOpScalarFunction
                 (
                     &Foam::equationReader::evalScalarSqrt
@@ -823,6 +1000,10 @@ void Foam::equationReader::assignFunctionPointers(const label index) const
                         << "] takes only one parameter."
                         << abort(FatalError);
                 }
+                eqOp.assignOpScalarFieldFunction
+                (
+                    &Foam::equationReader::evalScalarFieldCbrt
+                );
                 eqOp.assignOpScalarFunction
                 (
                     &Foam::equationReader::evalScalarCbrt
@@ -848,6 +1029,10 @@ void Foam::equationReader::assignFunctionPointers(const label index) const
                         << "] requires two parameters."
                         << abort(FatalError);
                 }
+                eqOp.assignOpScalarFieldFunction
+                (
+                    &Foam::equationReader::evalScalarFieldHypot
+                );
                 eqOp.assignOpScalarFunction
                 (
                     &Foam::equationReader::evalScalarHypot
@@ -873,6 +1058,10 @@ void Foam::equationReader::assignFunctionPointers(const label index) const
                         << "] takes only one parameter."
                         << abort(FatalError);
                 }
+                eqOp.assignOpScalarFieldFunction
+                (
+                    &Foam::equationReader::evalScalarFieldExp
+                );
                 eqOp.assignOpScalarFunction
                 (
                     &Foam::equationReader::evalScalarExp
@@ -898,6 +1087,10 @@ void Foam::equationReader::assignFunctionPointers(const label index) const
                         << "] takes only one parameter."
                         << abort(FatalError);
                 }
+                eqOp.assignOpScalarFieldFunction
+                (
+                    &Foam::equationReader::evalScalarFieldLog
+                );
                 eqOp.assignOpScalarFunction
                 (
                     &Foam::equationReader::evalScalarLog
@@ -923,6 +1116,10 @@ void Foam::equationReader::assignFunctionPointers(const label index) const
                         << "] takes only one parameter."
                         << abort(FatalError);
                 }
+                eqOp.assignOpScalarFieldFunction
+                (
+                    &Foam::equationReader::evalScalarFieldLog10
+                );
                 eqOp.assignOpScalarFunction
                 (
                     &Foam::equationReader::evalScalarLog10
@@ -948,6 +1145,10 @@ void Foam::equationReader::assignFunctionPointers(const label index) const
                         << "] takes only one parameter."
                         << abort(FatalError);
                 }
+                eqOp.assignOpScalarFieldFunction
+                (
+                    &Foam::equationReader::evalScalarFieldSin
+                );
                 eqOp.assignOpScalarFunction
                 (
                     &Foam::equationReader::evalScalarSin
@@ -973,6 +1174,10 @@ void Foam::equationReader::assignFunctionPointers(const label index) const
                         << "] takes only one parameter."
                         << abort(FatalError);
                 }
+                eqOp.assignOpScalarFieldFunction
+                (
+                    &Foam::equationReader::evalScalarFieldCos
+                );
                 eqOp.assignOpScalarFunction
                 (
                     &Foam::equationReader::evalScalarCos
@@ -998,6 +1203,10 @@ void Foam::equationReader::assignFunctionPointers(const label index) const
                         << "] takes only one parameter."
                         << abort(FatalError);
                 }
+                eqOp.assignOpScalarFieldFunction
+                (
+                    &Foam::equationReader::evalScalarFieldTan
+                );
                 eqOp.assignOpScalarFunction
                 (
                     &Foam::equationReader::evalScalarTan
@@ -1023,6 +1232,10 @@ void Foam::equationReader::assignFunctionPointers(const label index) const
                         << "] takes only one parameter."
                         << abort(FatalError);
                 }
+                eqOp.assignOpScalarFieldFunction
+                (
+                    &Foam::equationReader::evalScalarFieldAsin
+                );
                 eqOp.assignOpScalarFunction
                 (
                     &Foam::equationReader::evalScalarAsin
@@ -1048,6 +1261,10 @@ void Foam::equationReader::assignFunctionPointers(const label index) const
                         << "] takes only one parameter."
                         << abort(FatalError);
                 }
+                eqOp.assignOpScalarFieldFunction
+                (
+                    &Foam::equationReader::evalScalarFieldAcos
+                );
                 eqOp.assignOpScalarFunction
                 (
                     &Foam::equationReader::evalScalarAcos
@@ -1073,6 +1290,10 @@ void Foam::equationReader::assignFunctionPointers(const label index) const
                         << "] takes only one parameter."
                         << abort(FatalError);
                 }
+                eqOp.assignOpScalarFieldFunction
+                (
+                    &Foam::equationReader::evalScalarFieldAtan
+                );
                 eqOp.assignOpScalarFunction
                 (
                     &Foam::equationReader::evalScalarAtan
@@ -1098,6 +1319,10 @@ void Foam::equationReader::assignFunctionPointers(const label index) const
                         << "] takes only one parameter."
                         << abort(FatalError);
                 }
+                eqOp.assignOpScalarFieldFunction
+                (
+                    &Foam::equationReader::evalScalarFieldSinh
+                );
                 eqOp.assignOpScalarFunction
                 (
                     &Foam::equationReader::evalScalarSinh
@@ -1123,6 +1348,10 @@ void Foam::equationReader::assignFunctionPointers(const label index) const
                         << "] takes only one parameter."
                         << abort(FatalError);
                 }
+                eqOp.assignOpScalarFieldFunction
+                (
+                    &Foam::equationReader::evalScalarFieldCosh
+                );
                 eqOp.assignOpScalarFunction
                 (
                     &Foam::equationReader::evalScalarCosh
@@ -1148,6 +1377,10 @@ void Foam::equationReader::assignFunctionPointers(const label index) const
                         << "] takes only one parameter."
                         << abort(FatalError);
                 }
+                eqOp.assignOpScalarFieldFunction
+                (
+                    &Foam::equationReader::evalScalarFieldTanh
+                );
                 eqOp.assignOpScalarFunction
                 (
                     &Foam::equationReader::evalScalarTanh
@@ -1173,6 +1406,10 @@ void Foam::equationReader::assignFunctionPointers(const label index) const
                         << "] takes only one parameter."
                         << abort(FatalError);
                 }
+                eqOp.assignOpScalarFieldFunction
+                (
+                    &Foam::equationReader::evalScalarFieldAsinh
+                );
                 eqOp.assignOpScalarFunction
                 (
                     &Foam::equationReader::evalScalarAsinh
@@ -1198,6 +1435,10 @@ void Foam::equationReader::assignFunctionPointers(const label index) const
                         << "] takes only one parameter."
                         << abort(FatalError);
                 }
+                eqOp.assignOpScalarFieldFunction
+                (
+                    &Foam::equationReader::evalScalarFieldAcosh
+                );
                 eqOp.assignOpScalarFunction
                 (
                     &Foam::equationReader::evalScalarAcosh
@@ -1223,6 +1464,10 @@ void Foam::equationReader::assignFunctionPointers(const label index) const
                         << "] takes only one parameter."
                         << abort(FatalError);
                 }
+                eqOp.assignOpScalarFieldFunction
+                (
+                    &Foam::equationReader::evalScalarFieldAtanh
+                );
                 eqOp.assignOpScalarFunction
                 (
                     &Foam::equationReader::evalScalarAtanh
@@ -1248,6 +1493,10 @@ void Foam::equationReader::assignFunctionPointers(const label index) const
                         << "] takes only one parameter."
                         << abort(FatalError);
                 }
+                eqOp.assignOpScalarFieldFunction
+                (
+                    &Foam::equationReader::evalScalarFieldErf
+                );
                 eqOp.assignOpScalarFunction
                 (
                     &Foam::equationReader::evalScalarErf
@@ -1273,6 +1522,10 @@ void Foam::equationReader::assignFunctionPointers(const label index) const
                         << "] takes only one parameter."
                         << abort(FatalError);
                 }
+                eqOp.assignOpScalarFieldFunction
+                (
+                    &Foam::equationReader::evalScalarFieldErfc
+                );
                 eqOp.assignOpScalarFunction
                 (
                     &Foam::equationReader::evalScalarErfc
@@ -1298,6 +1551,10 @@ void Foam::equationReader::assignFunctionPointers(const label index) const
                         << "] takes only one parameter."
                         << abort(FatalError);
                 }
+                eqOp.assignOpScalarFieldFunction
+                (
+                    &Foam::equationReader::evalScalarFieldLgamma
+                );
                 eqOp.assignOpScalarFunction
                 (
                     &Foam::equationReader::evalScalarLgamma
@@ -1323,6 +1580,10 @@ void Foam::equationReader::assignFunctionPointers(const label index) const
                         << "] takes only one parameter."
                         << abort(FatalError);
                 }
+                eqOp.assignOpScalarFieldFunction
+                (
+                    &Foam::equationReader::evalScalarFieldJ0
+                );
                 eqOp.assignOpScalarFunction
                 (
                     &Foam::equationReader::evalScalarJ0
@@ -1348,6 +1609,10 @@ void Foam::equationReader::assignFunctionPointers(const label index) const
                         << "] takes only one parameter."
                         << abort(FatalError);
                 }
+                eqOp.assignOpScalarFieldFunction
+                (
+                    &Foam::equationReader::evalScalarFieldJ1
+                );
                 eqOp.assignOpScalarFunction
                 (
                     &Foam::equationReader::evalScalarJ1
@@ -1373,6 +1638,10 @@ void Foam::equationReader::assignFunctionPointers(const label index) const
                         << "] requires two parameters."
                         << abort(FatalError);
                 }
+                eqOp.assignOpScalarFieldFunction
+                (
+                    &Foam::equationReader::evalScalarFieldJn
+                );
                 eqOp.assignOpScalarFunction
                 (
                     &Foam::equationReader::evalScalarJn
@@ -1398,6 +1667,10 @@ void Foam::equationReader::assignFunctionPointers(const label index) const
                         << "] takes only one parameter."
                         << abort(FatalError);
                 }
+                eqOp.assignOpScalarFieldFunction
+                (
+                    &Foam::equationReader::evalScalarFieldY0
+                );
                 eqOp.assignOpScalarFunction
                 (
                     &Foam::equationReader::evalScalarY0
@@ -1423,6 +1696,10 @@ void Foam::equationReader::assignFunctionPointers(const label index) const
                         << "] takes only one parameter."
                         << abort(FatalError);
                 }
+                eqOp.assignOpScalarFieldFunction
+                (
+                    &Foam::equationReader::evalScalarFieldY1
+                );
                 eqOp.assignOpScalarFunction
                 (
                     &Foam::equationReader::evalScalarY1
@@ -1448,6 +1725,10 @@ void Foam::equationReader::assignFunctionPointers(const label index) const
                         << "] requires two parameters."
                         << abort(FatalError);
                 }
+                eqOp.assignOpScalarFieldFunction
+                (
+                    &Foam::equationReader::evalScalarFieldYn
+                );
                 eqOp.assignOpScalarFunction
                 (
                     &Foam::equationReader::evalScalarYn
@@ -1473,6 +1754,10 @@ void Foam::equationReader::assignFunctionPointers(const label index) const
                         << "] requires two parameters."
                         << abort(FatalError);
                 }
+                eqOp.assignOpScalarFieldFunction
+                (
+                    &Foam::equationReader::evalScalarFieldMax
+                );
                 eqOp.assignOpScalarFunction
                 (
                     &Foam::equationReader::evalScalarMax
@@ -1498,6 +1783,10 @@ void Foam::equationReader::assignFunctionPointers(const label index) const
                         << "] requires two parameters."
                         << abort(FatalError);
                 }
+                eqOp.assignOpScalarFieldFunction
+                (
+                    &Foam::equationReader::evalScalarFieldMin
+                );
                 eqOp.assignOpScalarFunction
                 (
                     &Foam::equationReader::evalScalarMin
@@ -1523,6 +1812,10 @@ void Foam::equationReader::assignFunctionPointers(const label index) const
                         << "] requires two parameters."
                         << abort(FatalError);
                 }
+                eqOp.assignOpScalarFieldFunction
+                (
+                    &Foam::equationReader::evalScalarFieldStabilise
+                );
                 eqOp.assignOpScalarFunction
                 (
                     &Foam::equationReader::evalScalarStabilise

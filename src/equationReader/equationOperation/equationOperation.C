@@ -49,6 +49,8 @@ Foam::equationOperation::equationOperation(const equationOperation& eqop)
     componentIndex_(eqop.componentIndex_),
     dictLookupIndex_(eqop.dictLookupIndex_),
     operation_(eqop.operation_),
+    getSourceScalarFieldFunction_(eqop.getSourceScalarFieldFunction_),
+    opScalarFieldFunction_(eqop.opScalarFieldFunction_),
     getSourceScalarFunction_(eqop.getSourceScalarFunction_),
     opScalarFunction_(eqop.opScalarFunction_),
     getSourceDimsFunction_(eqop.getSourceDimsFunction_),
@@ -63,6 +65,24 @@ Foam::equationOperation::equationOperation
     label componentIndex,
     label dictLookupIndex,
     operationType operation,
+    const scalarField& (Foam::equationReader::*getSourceScalarFieldFunction)
+    (
+        const equationReader *,
+        const label,
+        const label,
+        const label,
+        const label
+    ) const,
+    void (Foam::equationReader::*opScalarFieldFunction)
+    (
+        const equationReader *,
+        const label,
+        const label,
+        const label,
+        label&,
+        scalarField&,
+        const scalarField&
+    ) const,
     scalar (Foam::equationReader::*getSourceScalarFunction)
     (
         const equationReader *,
@@ -106,6 +126,8 @@ Foam::equationOperation::equationOperation
     componentIndex_(componentIndex),
     dictLookupIndex_(dictLookupIndex),
     operation_(operation),
+    getSourceScalarFieldFunction_(getSourceScalarFieldFunction),
+    opScalarFieldFunction_(opScalarFieldFunction),
     getSourceScalarFunction_(getSourceScalarFunction),
     opScalarFunction_(opScalarFunction),
     getSourceDimsFunction_(getSourceDimsFunction),
@@ -493,6 +515,40 @@ Foam::word Foam::equationOperation::sourceName
 }
 
 
+void Foam::equationOperation::assignSourceScalarFieldFunction
+(
+    const scalarField& (Foam::equationReader::*getSourceScalarFieldFunction)
+    (
+        const equationReader *,
+        const label,
+        const label,
+        const label,
+        const label
+    ) const
+) const
+{
+    getSourceScalarFieldFunction_ = getSourceScalarFieldFunction;
+}
+
+
+void Foam::equationOperation::assignOpScalarFieldFunction
+(
+    void (Foam::equationReader::*opScalarFieldFunction)
+    (
+        const equationReader *,
+        const label,
+        const label,
+        const label,
+        label&,
+        scalarField&,
+        const scalarField&
+    ) const
+) const
+{
+    opScalarFieldFunction_ = opScalarFieldFunction;
+}
+
+
 void Foam::equationOperation::assignSourceScalarFunction
 (
     scalar (Foam::equationReader::*getSourceScalarFunction)
@@ -558,6 +614,50 @@ void Foam::equationOperation::assignOpDimsFunction
 ) const
 {
     opDimsFunction_ = opDimsFunction;
+}
+
+
+const Foam::scalarField& Foam::equationOperation::getSourceScalarFieldFunction
+(
+    const equationReader * eqnReader,
+    const label equationIndex,
+    const label equationOperationIndex,
+    const label maxStoreIndex,
+    const label storageOffset
+) const
+{
+    return (eqnReader->*getSourceScalarFieldFunction_)
+    (
+        eqnReader,
+        equationIndex,
+        equationOperationIndex,
+        maxStoreIndex,
+        storageOffset
+    );
+}
+
+
+void Foam::equationOperation::opScalarFieldFunction
+(
+    const equationReader * eqnReader,
+    const label index,
+    const label i,
+    const label storageOffset,
+    label& storageIndex,
+    scalarField& x,
+    const scalarField& source
+) const
+{
+    (eqnReader->*opScalarFieldFunction_)
+    (
+        eqnReader,
+        index,
+        i,
+        storageOffset,
+        storageIndex,
+        x,
+        source
+    );
 }
 
 
@@ -679,6 +779,8 @@ void Foam::equationOperation::operator=(Foam::equationOperation& eqn)
     componentIndex_ = eqn.componentIndex_;
     dictLookupIndex_ = eqn.dictLookupIndex_;
     operation_ = eqn.operation_;
+    getSourceScalarFieldFunction_ = eqn.getSourceScalarFieldFunction_;
+    opScalarFieldFunction_ = eqn.opScalarFieldFunction_;
     getSourceScalarFunction_ = eqn.getSourceScalarFunction_;
     opScalarFunction_ = eqn.opScalarFunction_;
     getSourceDimsFunction_ = eqn.getSourceDimsFunction_;

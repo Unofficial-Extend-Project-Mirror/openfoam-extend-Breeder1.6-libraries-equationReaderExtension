@@ -212,6 +212,24 @@ const Foam::scalar& Foam::equationSource<Type>::fieldValue
 
 
 template<class Type>
+void Foam::equationSource<Type>::fullFieldValue
+(
+    scalarField& result,
+    label sourceIndex,
+    label componentIndex,
+    label geoIndex
+) const
+{
+    const Field<Type>& fieldRef(fields_[sourceIndex][geoIndex]);
+    //result.setSize(fieldRef.size());
+    forAll(result, cellIndex)
+    {
+        result[cellIndex] = fieldRef[cellIndex][componentIndex];
+    }
+}
+
+
+template<class Type>
 const Foam::dimensionSet& Foam::equationSource<Type>::fieldDimensions
 (
     label sourceIndex

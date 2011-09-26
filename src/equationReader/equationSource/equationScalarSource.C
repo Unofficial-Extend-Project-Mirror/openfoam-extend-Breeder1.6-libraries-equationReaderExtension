@@ -69,6 +69,19 @@ const scalar& equationSource<scalar>::fieldValue
     return fields_[sourceIndex][geoIndex][cellIndex];
 }
 
+template<>
+void equationSource<scalar>::fullFieldValue
+(
+    scalarField& result,
+    label sourceIndex,
+    label componentIndex,
+    label geoIndex
+) const
+{
+    //result.setSize(fields_[sourceIndex][geoIndex].size());
+    result = fields_[sourceIndex][geoIndex];
+}
+
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

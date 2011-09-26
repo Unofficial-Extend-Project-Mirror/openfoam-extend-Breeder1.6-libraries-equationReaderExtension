@@ -90,6 +90,7 @@ Author
 #define equationReader_H
 
 #include "versionSpecific.H"
+#include "equationReaderVersion.H"
 #include "equationSource.H"
 #include "equationVariable.H"
 #include "dictionary.H"
@@ -190,6 +191,9 @@ class equationReader
             mutable label cellIndex_;
             
             //- Temporary storage during evaluation
+            //mutable fieldSize_;
+            mutable scalarField tempSrcField_;
+            mutable PtrList<scalarField> storageScalarFields_;
             mutable scalarList storageScalars_;
             mutable PtrList<dimensionSet> storageDims_;
             
@@ -201,22 +205,31 @@ class equationReader
         //- Disallow default bitwise assignment
         void operator=(const equationReader&);
 
-        //- Internal scalar evaluation function
-        //  *** Located in equationReaderEvaluate.C ***
-        scalar internalEvaluateScalar
-        (
-            const label& index,
-            label storageOffset
-        ) const;
-
         //- Internal dimensions evaluation function
         //  *** Located in equationReaderEvaluate.C ***
         dimensionSet internalEvaluateDimensions
         (
-            const label& index,
+            const label& equationIndex,
             label storageOffset
         ) const;
         
+        //- Internal scalar evaluation function
+        //  *** Located in equationReaderEvaluate.C ***
+        scalar internalEvaluateScalar
+        (
+            const label& equationIndex,
+            label storageOffset
+        ) const;
+
+        //- Internal scalarField evaluation function
+        //  *** Located in equationReaderEvaluate.C ***
+        void internalEvaluateScalarField
+        (
+            scalarField& result,
+            const label& equationIndex,
+            label storageOffset
+        ) const;
+
         //- Internal final dimension checking / error throwing
         //  *** Located in equationReaderEvaluate.C ***
         void checkFinalDimensions
@@ -440,8 +453,10 @@ class equationReader
         // *** Implemented in equationReaderEvalScalarP.C ***
 #       include "equationReaderGetSourceDimsP.H"
 #       include "equationReaderGetSourceScalarP.H"
+#       include "equationReaderGetSourceScalarFieldP.H"
 #       include "equationReaderEvalDimsP.H"
 #       include "equationReaderEvalScalarP.H"
+#       include "equationReaderEvalScalarFieldP.H"
 
             //- Link the functions to the pointers
             //  *** Located in equationReaderAssignFunctionPointers.C ***
@@ -473,6 +488,9 @@ public:
     // Member functions
 
         // Access
+        
+            //- Version number
+            word version() const;
 
             //- Internal scalars
             //  *** Located in equationReaderI.H ***

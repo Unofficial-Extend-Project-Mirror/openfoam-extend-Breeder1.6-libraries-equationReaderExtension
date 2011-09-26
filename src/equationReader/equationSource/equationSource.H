@@ -191,6 +191,15 @@ public:
                 label geoIndex
             ) const;
 
+            //- Retrieve component as entire field
+            void fullFieldValue
+            (
+                scalarField& result,
+                label sourceIndex,
+                label componentIndex,
+                label geoIndex
+            ) const;
+
             //- Retrieve dimensions from field
             const dimensionSet& fieldDimensions(label sourceIndex) const;
 
@@ -268,6 +277,15 @@ const scalar& equationSource<scalar>::fieldValue
     label sourceIndex,
     label componentIndex,
     label cellIndex,
+    label geoIndex
+) const;
+
+template<>
+void equationSource<scalar>::fullFieldValue
+(
+    scalarField& result,
+    label sourceIndex,
+    label componentIndex,
     label geoIndex
 ) const;
 

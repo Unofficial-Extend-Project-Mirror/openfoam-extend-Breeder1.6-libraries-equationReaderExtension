@@ -312,6 +312,152 @@ Foam::scalar Foam::equationReader::internalEvaluateScalar
 }
 
 
+void Foam::equationReader::internalEvaluateScalarField
+(
+    scalarField& result,
+    const label& equationIndex,
+    label storageOffset
+) const
+{
+#   ifdef FULLDEBUG
+    // Bounds checking
+    if ((equationIndex < 0) || (equationIndex >= size()))
+    {
+        FatalErrorIn("equationReader::internalEvaluateScalarField")
+            << "equationIndex " << equationIndex << " out of bounds (0, "
+            << size() - 1 << ")"
+            << abort(FatalError);
+    }
+#   endif
+
+    tempSrcField_.setSize(result.size());
+
+    const equation& eqn(operator[](equationIndex));
+
+    // Launch the reportScalarEvalStartFunction, which does this:
+    //  if ((debug == 1) || (debug == 2) || (debug == 5) || (debug == 6))
+    //  {
+    //      reportScalarEvalStartEnabled(equationIndex);
+    //      // reports details to the console that evaluation has commenced
+    //  }
+    //  else
+    //  {
+    //      reportScalarEvalStartDisabled(equationIndex);
+    //      // does nothing
+    //  }
+    (*this.*reportScalarEvalStartFunction_)(equationIndex);
+    
+    if (eqn.size() == 0)
+    {
+        parse(equationIndex);
+    }
+
+    label storeIndex(-1);
+
+    result = 0.0;
+
+    for (label i(0); i < eqn.size(); i++)
+    {
+#       ifdef FULLDEBUG
+        if
+        (
+            (
+                (i == 0)
+             || (eqn[i - 1].operation() == equationOperation::otstore)
+            )
+         && (
+                eqn[i].operation()
+             != equationOperation::otretrieve
+            )
+        )
+        {
+            FatalErrorIn("equationReader::internalEvaluateScalarField")
+                << "Bad operation list.  Operation at " << i << " either "
+                << "follows a 'store', or is the first operation.  Therefore "
+                << "it should be retrieve, but it is " << eqn[i].operation()
+                << "."
+                << abort(FatalError);
+        }
+#       endif
+
+        // Execute getSource function to which this operation points
+        const scalarField& source
+        (
+            eqn[i].getSourceScalarFieldFunction
+            (
+                this,
+                equationIndex,
+                i,
+                storeIndex + storageOffset,
+                storageOffset
+            )
+        );
+
+        // Launch the reportScalarOperationFunction, which does this:
+        //  if ((debug == 2) || (debug == 6))
+        //  {
+        //      reportScalarOperationEnabled(equationIndex, i);
+        //      // posts operation-by-operation information to the console
+        //  }
+        //  else
+        //  {
+        //      reportScalarOperationDisabled(equationIndex, i);
+        //      // does nothing
+        //  }
+        (*this.*reportScalarOperationFunction_)(equationIndex, i);
+        
+        // Execute the eval function to which this operation points
+        eqn[i].opScalarFieldFunction
+        (
+            this,
+            equationIndex,
+            i,
+            storageOffset,
+            storeIndex,
+            result,
+            source
+        );
+        
+        // Launch the reportScalarResultFunction, which does this:
+        //  if ((debug == 2) || (debug == 6))
+        //  {
+        //      reportScalarResultEnabled(x);
+        //      // posts result to the console
+        //  }
+        //  else
+        //  {
+        //      reportScalarResultDisabled(x);
+        //      // does nothing
+        //  }
+        (*this.*reportScalarResultFunction_)(result[0]);
+    }
+    
+    //Move one level back up on the dependents_ list
+    if (dependents_.size())
+    {
+        dependents_.setSize(dependents_.size() - 1);
+    }    
+
+    storageScalarFields_.setSize(storageOffset);
+
+    // Launch the reportScalarEvalEndFunction, which does this:
+    //  if ((debug == 1) || (debug == 2) || (debug == 5) || (debug == 6))
+    //  {
+    //      reportScalarEvalEndEnabled(equationIndex);
+    //      // reports details to the console that evaluation has completed
+    //  }
+    //  else
+    //  {
+    //      reportScalarEvalEndDisabled(equationIndex);
+    //      // does nothing
+    //  }
+    (*this.*reportScalarEvalEndFunction_)(result[0]);
+
+    eqn.setLastResult(result[result.size() - 1]);
+    tempSrcField_.setSize(0);
+}
+
+
 void Foam::equationReader::checkFinalDimensions
 (
     const label& equationIndex,
@@ -500,10 +646,41 @@ void Foam::equationReader::evaluateScalarField
     const label geoIndex
 ) const
 {
-    forAll(resultField, cellIndex)
+    const equation& eqn(operator[](equationIndex));
+#   ifdef FULLDEBUG
+        // Index checking
+        const labelList& maxFieldSizes(eqn.maxFieldSizes());
+        if (geoIndex < 0)
+        {
+            FatalErrorIn("equationReader::evaluateScalarField")
+                << "Evaluating " << eqn.name() << ": geoIndex (" << geoIndex
+                << ") cannot be negative."
+                << abort(FatalError);
+        }
+        else if (maxFieldSizes.size() > 0)
+        {
+            if (geoIndex >= maxFieldSizes.size())
+            {
+                FatalErrorIn("equationReader::evaluateScalarField")
+                    << "Evaluating " << eqn.name() << ": geoIndex ("
+                    << geoIndex << ") out of range (0 .. "
+                    << maxFieldSizes.size() - 1 << ")."
+                    << abort(FatalError);
+            }
+            else if (resultField.size() != maxFieldSizes[geoIndex])
+            {
+                FatalErrorIn("equationReader::evaluateScalarField")
+                    << "Evaluating " << eqn.name() << ": field size mismatch. "
+                    << "result.size() = " << resultField.size() << ", "
+                    << "expected = " << maxFieldSizes[geoIndex] - 1 << "."
+                    << abort(FatalError);
+            }
+        }
+#   endif
+    geoIndex_ = geoIndex;
+    if (resultField.size())
     {
-        resultField[cellIndex] =
-            evaluateScalar(equationIndex, cellIndex, geoIndex);
+        internalEvaluateScalarField(resultField, equationIndex, 0);
     }
 }
 

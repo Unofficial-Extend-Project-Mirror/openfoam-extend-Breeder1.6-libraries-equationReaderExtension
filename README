@@ -14,10 +14,12 @@ David L. F. Gaden (david_gaden@umanitoba.ca)
 
 Contributors
 ============
-David L. F. Gaden : base version
+David L. F. Gaden  : base version
+Bernhard Gschaider : bug fix for OpenFOAM 2.x.x
 
 Documentation
 =============
+Please cite my scientific articles if possible.  I have no publications relevant to equationReader at this time.  Please check back later.
 See: http://openfoamwiki.net/index.php/Contrib_equationReader
 
 Installation/Compilation
@@ -38,7 +40,7 @@ Contents
 
 Required OpenFOAM-Version (Known to work with)
 ==============================================
-1.6-ext
+1.6-ext, 1.7.x, 2.x.x
 
 History
 =======
@@ -77,4 +79,6 @@ History
         * Add data functions reorganized / changed.
         * Evaluate functions reorganized / changed.
         * Update functions removed.
-
+ 2011-09-25: Version 0.5.0
+    * Improved treatment of fields - now approximately 10x faster.
+    * Introduced version numbers to keep track of changes.

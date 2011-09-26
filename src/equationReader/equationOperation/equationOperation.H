@@ -181,6 +181,29 @@ private:
     // The operation to be performed (+ - sin exp min, etc...)
     operationType operation_;
     
+    // A pointer to the scalarField source data retrieval function
+    mutable const scalarField&
+    (Foam::equationReader::*getSourceScalarFieldFunction_)
+    (
+        const equationReader * eqnReader,
+        const label equationIndex,
+        const label equationOperationIndex,
+        const label maxStoreIndex,
+        const label storageOffset
+    ) const;
+
+    // A pointer to the scalarField operation to be performed
+    mutable void (Foam::equationReader::*opScalarFieldFunction_)
+    (
+        const equationReader * eqnReader,
+        const label index,
+        const label i,
+        const label storageOffset,
+        label& storageIndex,
+        scalarField& x,
+        const scalarField& source
+    ) const;
+
     // A pointer to the scalar source data retrieval function
     mutable scalar (Foam::equationReader::*getSourceScalarFunction_)
     (
@@ -248,6 +271,25 @@ public:
             label componentIndex,
             label dictLookupIndex,
             operationType operation,
+            const scalarField&
+            (Foam::equationReader::*getSourceScalarFieldFunction_)
+            (
+                const equationReader *,
+                const label,
+                const label,
+                const label,
+                const label
+            ) const = NULL,
+            void (Foam::equationReader::*opScalarFieldFunction_)
+            (
+                const equationReader *,
+                const label,
+                const label,
+                const label,
+                label&,
+                scalarField&,
+                const scalarField&
+            ) const = NULL,
             scalar (Foam::equationReader::*getSourceScalarFunction)
             (
                 const equationReader *,
@@ -326,6 +368,35 @@ public:
 
         // Function pointers
             
+            //- Assign the source scalarField function
+            void assignSourceScalarFieldFunction
+            (
+                const scalarField&
+                (Foam::equationReader::*getSourceScalarFieldFunction)
+                (
+                    const equationReader *,
+                    const label,
+                    const label,
+                    const label,
+                    const label
+                ) const
+            ) const;
+
+            //- Assign the operation scalarField function
+            void assignOpScalarFieldFunction
+            (
+                void (Foam::equationReader::*opScalarFieldFunction)
+                (
+                    const equationReader *,
+                    const label,
+                    const label,
+                    const label,
+                    label&,
+                    scalarField&,
+                    const scalarField&
+                ) const
+            ) const;
+
             //- Assign the source scalar function
             void assignSourceScalarFunction
             (
@@ -381,7 +452,29 @@ public:
                     dimensionSet
                 ) const
             ) const;
-            
+
+            //- Call the getSourceScalarField function
+            const scalarField& getSourceScalarFieldFunction
+            (
+                const equationReader * eqnReader,
+                const label equationIndex,
+                const label equationOperationIndex,
+                const label maxStoreIndex,
+                const label storageOffset
+            ) const;
+
+            //- Call the operation scalarField function
+            void opScalarFieldFunction
+            (
+                const equationReader * eqnReader,
+                const label index,
+                const label i,
+                const label storageOffset,
+                label& storageIndex,
+                scalarField& x,
+                const scalarField& source
+            ) const;
+
             //- Call the getSourceScalar function
             scalar getSourceScalarFunction
             (
@@ -404,7 +497,6 @@ public:
                 scalar source
             ) const;
 
-            //- Call the operation scalar function
             //- Call the getSourceDims function
             dimensionSet getSourceDimsFunction
             (

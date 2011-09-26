@@ -27,7 +27,8 @@ License
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 
-Foam::scalar Foam::equationReader::getScalarSrcNone
+const Foam::scalarField&
+    Foam::equationReader::getScalarFieldSrcNone
 (
     const equationReader * eqnReader,
     const label equationIndex,
@@ -36,11 +37,13 @@ Foam::scalar Foam::equationReader::getScalarSrcNone
     const label storageOffset
 ) const
 {
-    return 0.0;
+    tempSrcField_ = 0.0;
+    return tempSrcField_;
 }
 
 
-Foam::scalar Foam::equationReader::getScalarSrcStorage
+const Foam::scalarField&
+    Foam::equationReader::getScalarFieldSrcStorage
 (
     const equationReader * eqnReader,
     const label equationIndex,
@@ -62,13 +65,17 @@ Foam::scalar Foam::equationReader::getScalarSrcStorage
             << abort(FatalError);
     }
 #   endif
-    scalar returnMe(storageScalars_[zeroSourceIndex + storageOffset]);
+    scalarField& returnMe
+    (
+        storageScalarFields_[zeroSourceIndex + storageOffset]
+    );
     returnMe *= sign(eqOp.sourceIndex());
     return returnMe;
 }
 
 
-Foam::scalar Foam::equationReader::getScalarSrcActiveSource
+const Foam::scalarField&
+    Foam::equationReader::getScalarFieldSrcActiveSource
 (
     const equationReader * eqnReader,
     const label equationIndex,
@@ -81,21 +88,19 @@ Foam::scalar Foam::equationReader::getScalarSrcActiveSource
     const equationOperation& eqOp(eqn[equationOperationIndex]);
     label zeroSourceIndex = mag(eqOp.sourceIndex()) - 1;
 
-    scalar returnMe
+    activeSources_[zeroSourceIndex].evaluateScalarField
     (
-        activeSources_[zeroSourceIndex].evaluateScalar
-        (
-            eqOp.componentIndex(),
-            cellIndex_,
-            geoIndex_
-        )
+        tempSrcField_,
+        eqOp.componentIndex(),
+        geoIndex_
     );
-    returnMe *= sign(eqOp.sourceIndex());
-    return returnMe;
+    tempSrcField_ *= sign(eqOp.sourceIndex());
+    return tempSrcField_;
 }
 
 
-Foam::scalar Foam::equationReader::getScalarSrcEquation
+const Foam::scalarField&
+    Foam::equationReader::getScalarFieldSrcEquation
 (
     const equationReader * eqnReader,
     const label equationIndex,
@@ -124,9 +129,13 @@ Foam::scalar Foam::equationReader::getScalarSrcEquation
     //  }
     (*this.*reportEmbeddedDispatchFunction_)();
 
-    scalar returnMe
+    scalarField result(tempSrcField_.size(), 0.0);
+    
+    internalEvaluateScalarField
     (
-        internalEvaluateScalar(zeroSourceIndex, maxStoreIndex + 1)
+        result,
+        zeroSourceIndex,
+        maxStoreIndex + 1
     );
 
     // Launch the reportEmbeddedReturnFunction:
@@ -142,12 +151,13 @@ Foam::scalar Foam::equationReader::getScalarSrcEquation
     //  }
     (*this.*reportEmbeddedReturnFunction_)();
 
-    returnMe *= sign(eqOp.sourceIndex());
-    return returnMe;
+    tempSrcField_ = result * sign(eqOp.sourceIndex());
+    return tempSrcField_;
 }
 
 
-Foam::scalar Foam::equationReader::getScalarSrcEquationCircRefDetect
+const Foam::scalarField&
+    Foam::equationReader::getScalarFieldSrcEquationCircRefDetect
 (
     const equationReader * eqnReader,
     const label equationIndex,
@@ -179,7 +189,10 @@ Foam::scalar Foam::equationReader::getScalarSrcEquationCircRefDetect
                 dependencies.append("-->");
             }
             dependencies.append(operator[](i).name());
-            FatalErrorIn("equationReader::getScalarSrcEquationCircRefDetect")
+            FatalErrorIn
+            (
+                "equationReader::getScalarFieldSrcEquationCircRefDetect"
+            )
                 << "Circular reference detected when evaluating "
                 << "the equation for " << eqn.name()
                 << ", given by:" << token::NL << token::TAB
@@ -193,9 +206,14 @@ Foam::scalar Foam::equationReader::getScalarSrcEquationCircRefDetect
     {
         Info << "Embedded equation dispatch." << endl;
     }
-    scalar returnMe
+
+    scalarField result(tempSrcField_.size(), 0.0);
+    
+    internalEvaluateScalarField
     (
-        internalEvaluateScalar(zeroSourceIndex, maxStoreIndex + 1)
+        result,
+        zeroSourceIndex,
+        maxStoreIndex + 1
     );
     eqOp.assignSourceScalarFunction
     (
@@ -205,16 +223,18 @@ Foam::scalar Foam::equationReader::getScalarSrcEquationCircRefDetect
     (
         &Foam::equationReader::getScalarFieldSrcEquation
     );
+
     if (debug)
     {
         Info << "Returned from embedded equation." << endl;
     }
-    returnMe *= sign(eqOp.sourceIndex());
-    return returnMe;
+    tempSrcField_ = result * sign(eqOp.sourceIndex());
+    return tempSrcField_;
 }
 
 
-Foam::scalar Foam::equationReader::getScalarSrcInternalScalar
+const Foam::scalarField&
+    Foam::equationReader::getScalarFieldSrcInternalScalar
 (
     const equationReader * eqnReader,
     const label equationIndex,
@@ -227,13 +247,14 @@ Foam::scalar Foam::equationReader::getScalarSrcInternalScalar
     const equationOperation& eqOp(eqn[equationOperationIndex]);
     label zeroSourceIndex = mag(eqOp.sourceIndex()) - 1;
 
-    scalar returnMe(internalScalars_[zeroSourceIndex]);
-    returnMe *= sign(eqOp.sourceIndex());
-    return returnMe;
+    tempSrcField_ = internalScalars_[zeroSourceIndex];
+    tempSrcField_ *= sign(eqOp.sourceIndex());
+    return tempSrcField_;
 }
 
 
-Foam::scalar Foam::equationReader::getScalarSrcDictSourceDScalar
+const Foam::scalarField&
+    Foam::equationReader::getScalarFieldSrcDictSourceDScalar
 (
     const equationReader * eqnReader,
     const label equationIndex,
@@ -254,11 +275,13 @@ Foam::scalar Foam::equationReader::getScalarSrcDictSourceDScalar
         dictSources_[zeroSourceIndex].lookup(varName)
     );
     srcStrm >> ds;
-    return ds.value() * sign(eqOp.sourceIndex());
+    tempSrcField_ = ds.value() * sign(eqOp.sourceIndex());
+    return tempSrcField_;
 }
 
 
-Foam::scalar Foam::equationReader::getScalarSrcDictSourceScalar
+const Foam::scalarField&
+    Foam::equationReader::getScalarFieldSrcDictSourceScalar
 (
     const equationReader * eqnReader,
     const label equationIndex,
@@ -277,12 +300,13 @@ Foam::scalar Foam::equationReader::getScalarSrcDictSourceScalar
     (
         readScalar(dictSources_[zeroSourceIndex].lookup(varName))
     );
-    returnMe *= sign(eqOp.sourceIndex());
-    return returnMe;
+    tempSrcField_ = returnMe * sign(eqOp.sourceIndex());
+    return tempSrcField_;
 }
 
 
-Foam::scalar Foam::equationReader::getScalarSrcScalarSource
+const Foam::scalarField&
+    Foam::equationReader::getScalarFieldSrcScalarSource
 (
     const equationReader * eqnReader,
     const label equationIndex,
@@ -294,20 +318,18 @@ Foam::scalar Foam::equationReader::getScalarSrcScalarSource
     const equation& eqn(operator[](equationIndex));
     const equationOperation& eqOp(eqn[equationOperationIndex]);
     label zeroSourceIndex = mag(eqOp.sourceIndex()) - 1;
-    scalar returnMe
+    
+    tempSrcField_ = scalarSources_.singleValue
     (
-        scalarSources_.singleValue
-        (
-            zeroSourceIndex,
-            eqOp.componentIndex()
-        )
-    );
-    returnMe *= sign(eqOp.sourceIndex());
-    return returnMe;
+        zeroSourceIndex,
+        eqOp.componentIndex()
+    ) * sign(eqOp.sourceIndex());
+    return tempSrcField_;
 }
 
 
-Foam::scalar Foam::equationReader::getScalarSrcScalarFieldSource
+const Foam::scalarField&
+    Foam::equationReader::getScalarFieldSrcScalarFieldSource
 (
     const equationReader * eqnReader,
     const label equationIndex,
@@ -319,22 +341,21 @@ Foam::scalar Foam::equationReader::getScalarSrcScalarFieldSource
     const equation& eqn(operator[](equationIndex));
     const equationOperation& eqOp(eqn[equationOperationIndex]);
     label zeroSourceIndex = mag(eqOp.sourceIndex()) - 1;
-    scalar returnMe
+    
+    scalarSources_.fullFieldValue
     (
-        scalarSources_.fieldValue
-        (
-            zeroSourceIndex,
-            eqOp.componentIndex(),
-            cellIndex_,
-            geoIndex_
-        )
+        tempSrcField_,
+        zeroSourceIndex,
+        eqOp.componentIndex(),
+        geoIndex_
     );
-    returnMe *= sign(eqOp.sourceIndex());
-    return returnMe;
+    tempSrcField_ *= sign(eqOp.sourceIndex());
+    return tempSrcField_;
 }
 
 
-Foam::scalar Foam::equationReader::getScalarSrcVectorSource
+const Foam::scalarField&
+    Foam::equationReader::getScalarFieldSrcVectorSource
 (
     const equationReader * eqnReader,
     const label equationIndex,
@@ -346,20 +367,18 @@ Foam::scalar Foam::equationReader::getScalarSrcVectorSource
     const equation& eqn(operator[](equationIndex));
     const equationOperation& eqOp(eqn[equationOperationIndex]);
     label zeroSourceIndex = mag(eqOp.sourceIndex()) - 1;
-    scalar returnMe
+
+    tempSrcField_ = vectorSources_.singleValue
     (
-        vectorSources_.singleValue
-        (
-            zeroSourceIndex,
-            eqOp.componentIndex()
-        )
-    );
-    returnMe *= sign(eqOp.sourceIndex());
-    return returnMe;
+        zeroSourceIndex,
+        eqOp.componentIndex()
+    ) * sign(eqOp.sourceIndex());
+    return tempSrcField_;
 }
 
 
-Foam::scalar Foam::equationReader::getScalarSrcVectorFieldSource
+const Foam::scalarField&
+    Foam::equationReader::getScalarFieldSrcVectorFieldSource
 (
     const equationReader * eqnReader,
     const label equationIndex,
@@ -371,22 +390,20 @@ Foam::scalar Foam::equationReader::getScalarSrcVectorFieldSource
     const equation& eqn(operator[](equationIndex));
     const equationOperation& eqOp(eqn[equationOperationIndex]);
     label zeroSourceIndex = mag(eqOp.sourceIndex()) - 1;
-    scalar returnMe
+    vectorSources_.fullFieldValue
     (
-        vectorSources_.fieldValue
-        (
-            zeroSourceIndex,
-            eqOp.componentIndex(),
-            cellIndex_,
-            geoIndex_
-        )
+        tempSrcField_,
+        zeroSourceIndex,
+        eqOp.componentIndex(),
+        geoIndex_
     );
-    returnMe *= sign(eqOp.sourceIndex());
-    return returnMe;
+    tempSrcField_ *= sign(eqOp.sourceIndex());
+    return tempSrcField_;
 }
 
 
-Foam::scalar Foam::equationReader::getScalarSrcTensorSource
+const Foam::scalarField&
+    Foam::equationReader::getScalarFieldSrcTensorSource
 (
     const equationReader * eqnReader,
     const label equationIndex,
@@ -398,20 +415,18 @@ Foam::scalar Foam::equationReader::getScalarSrcTensorSource
     const equation& eqn(operator[](equationIndex));
     const equationOperation& eqOp(eqn[equationOperationIndex]);
     label zeroSourceIndex = mag(eqOp.sourceIndex()) - 1;
-    scalar returnMe
+
+    tempSrcField_ = tensorSources_.singleValue
     (
-        tensorSources_.singleValue
-        (
-            zeroSourceIndex,
-            eqOp.componentIndex()
-        )
-    );
-    returnMe *= sign(eqOp.sourceIndex());
-    return returnMe;
+        zeroSourceIndex,
+        eqOp.componentIndex()
+    ) * sign(eqOp.sourceIndex());
+    return tempSrcField_;
 }
 
 
-Foam::scalar Foam::equationReader::getScalarSrcTensorFieldSource
+const Foam::scalarField&
+    Foam::equationReader::getScalarFieldSrcTensorFieldSource
 (
     const equationReader * eqnReader,
     const label equationIndex,
@@ -423,22 +438,22 @@ Foam::scalar Foam::equationReader::getScalarSrcTensorFieldSource
     const equation& eqn(operator[](equationIndex));
     const equationOperation& eqOp(eqn[equationOperationIndex]);
     label zeroSourceIndex = mag(eqOp.sourceIndex()) - 1;
-    scalar returnMe
+    
+    tensorSources_.fullFieldValue
     (
-        tensorSources_.fieldValue
-        (
-            zeroSourceIndex,
-            eqOp.componentIndex(),
-            cellIndex_,
-            geoIndex_
-        )
+        tempSrcField_,
+        zeroSourceIndex,
+        eqOp.componentIndex(),
+        geoIndex_
     );
-    returnMe *= sign(eqOp.sourceIndex());
-    return returnMe;
+    
+    tempSrcField_ *= sign(eqOp.sourceIndex());
+    return tempSrcField_;
 }
 
 
-Foam::scalar Foam::equationReader::getScalarSrcDiagTensorSource
+const Foam::scalarField&
+    Foam::equationReader::getScalarFieldSrcDiagTensorSource
 (
     const equationReader * eqnReader,
     const label equationIndex,
@@ -450,20 +465,17 @@ Foam::scalar Foam::equationReader::getScalarSrcDiagTensorSource
     const equation& eqn(operator[](equationIndex));
     const equationOperation& eqOp(eqn[equationOperationIndex]);
     label zeroSourceIndex = mag(eqOp.sourceIndex()) - 1;
-    scalar returnMe
+    tempSrcField_ = diagTensorSources_.singleValue
     (
-        diagTensorSources_.singleValue
-        (
-            zeroSourceIndex,
-            eqOp.componentIndex()
-        )
-    );
-    returnMe *= sign(eqOp.sourceIndex());
-    return returnMe;
+        zeroSourceIndex,
+        eqOp.componentIndex()
+    ) * sign(eqOp.sourceIndex());
+    return tempSrcField_;
 }
 
 
-Foam::scalar Foam::equationReader::getScalarSrcDiagTensorFieldSource
+const Foam::scalarField&
+    Foam::equationReader::getScalarFieldSrcDiagTensorFieldSource
 (
     const equationReader * eqnReader,
     const label equationIndex,
@@ -475,22 +487,22 @@ Foam::scalar Foam::equationReader::getScalarSrcDiagTensorFieldSource
     const equation& eqn(operator[](equationIndex));
     const equationOperation& eqOp(eqn[equationOperationIndex]);
     label zeroSourceIndex = mag(eqOp.sourceIndex()) - 1;
-    scalar returnMe
+
+    diagTensorSources_.fullFieldValue
     (
-        diagTensorSources_.fieldValue
-        (
-            zeroSourceIndex,
-            eqOp.componentIndex(),
-            cellIndex_,
-            geoIndex_
-        )
+        tempSrcField_,
+        zeroSourceIndex,
+        eqOp.componentIndex(),
+        geoIndex_
     );
-    returnMe *= sign(eqOp.sourceIndex());
-    return returnMe;
+    
+    tempSrcField_ *= sign(eqOp.sourceIndex());
+    return tempSrcField_;
 }
 
 
-Foam::scalar Foam::equationReader::getScalarSrcSymmTensorSource
+const Foam::scalarField&
+    Foam::equationReader::getScalarFieldSrcSymmTensorSource
 (
     const equationReader * eqnReader,
     const label equationIndex,
@@ -502,20 +514,17 @@ Foam::scalar Foam::equationReader::getScalarSrcSymmTensorSource
     const equation& eqn(operator[](equationIndex));
     const equationOperation& eqOp(eqn[equationOperationIndex]);
     label zeroSourceIndex = mag(eqOp.sourceIndex()) - 1;
-    scalar returnMe
+    tempSrcField_ = symmTensorSources_.singleValue
     (
-        symmTensorSources_.singleValue
-        (
-            zeroSourceIndex,
-            eqOp.componentIndex()
-        )
-    );
-    returnMe *= sign(eqOp.sourceIndex());
-    return returnMe;
+        zeroSourceIndex,
+        eqOp.componentIndex()
+    ) * sign(eqOp.sourceIndex());
+    return tempSrcField_;
 }
 
 
-Foam::scalar Foam::equationReader::getScalarSrcSymmTensorFieldSource
+const Foam::scalarField&
+    Foam::equationReader::getScalarFieldSrcSymmTensorFieldSource
 (
     const equationReader * eqnReader,
     const label equationIndex,
@@ -527,22 +536,22 @@ Foam::scalar Foam::equationReader::getScalarSrcSymmTensorFieldSource
     const equation& eqn(operator[](equationIndex));
     const equationOperation& eqOp(eqn[equationOperationIndex]);
     label zeroSourceIndex = mag(eqOp.sourceIndex()) - 1;
-    scalar returnMe
+
+    symmTensorSources_.fullFieldValue
     (
-        symmTensorSources_.fieldValue
-        (
-            zeroSourceIndex,
-            eqOp.componentIndex(),
-            cellIndex_,
-            geoIndex_
-        )
+        tempSrcField_,
+        zeroSourceIndex,
+        eqOp.componentIndex(),
+        geoIndex_
     );
-    returnMe *= sign(eqOp.sourceIndex());
-    return returnMe;
+    
+    tempSrcField_ *= sign(eqOp.sourceIndex());
+    return tempSrcField_;
 }
 
 
-Foam::scalar Foam::equationReader::getScalarSrcSphericalTensorSource
+const Foam::scalarField&
+    Foam::equationReader::getScalarFieldSrcSphericalTensorSource
 (
     const equationReader * eqnReader,
     const label equationIndex,
@@ -554,20 +563,17 @@ Foam::scalar Foam::equationReader::getScalarSrcSphericalTensorSource
     const equation& eqn(operator[](equationIndex));
     const equationOperation& eqOp(eqn[equationOperationIndex]);
     label zeroSourceIndex = mag(eqOp.sourceIndex()) - 1;
-    scalar returnMe
+    tempSrcField_ = sphericalTensorSources_.singleValue
     (
-        sphericalTensorSources_.singleValue
-        (
-            zeroSourceIndex,
-            eqOp.componentIndex()
-        )
-    );
-    returnMe *= sign(eqOp.sourceIndex());
-    return returnMe;
+        zeroSourceIndex,
+        eqOp.componentIndex()
+    ) * sign(eqOp.sourceIndex());
+    return tempSrcField_;
 }
 
 
-Foam::scalar Foam::equationReader::getScalarSrcSphericalTensorFieldSource
+const Foam::scalarField&
+    Foam::equationReader::getScalarFieldSrcSphericalTensorFieldSource
 (
     const equationReader * eqnReader,
     const label equationIndex,
@@ -579,18 +585,17 @@ Foam::scalar Foam::equationReader::getScalarSrcSphericalTensorFieldSource
     const equation& eqn(operator[](equationIndex));
     const equationOperation& eqOp(eqn[equationOperationIndex]);
     label zeroSourceIndex = mag(eqOp.sourceIndex()) - 1;
-    scalar returnMe
+
+    sphericalTensorSources_.fullFieldValue
     (
-        sphericalTensorSources_.fieldValue
-        (
-            zeroSourceIndex,
-            eqOp.componentIndex(),
-            cellIndex_,
-            geoIndex_
-        )
+        tempSrcField_,
+        zeroSourceIndex,
+        eqOp.componentIndex(),
+        geoIndex_
     );
-    returnMe *= sign(eqOp.sourceIndex());
-    return returnMe;
+    
+    tempSrcField_ *= sign(eqOp.sourceIndex());
+    return tempSrcField_;
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
